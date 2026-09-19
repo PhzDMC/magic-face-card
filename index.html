@@ -92,34 +92,34 @@
     </div>
 </div>
 
-<!-- 3. Thẻ bài kết quả (Khớp đúng tỷ lệ 1024x1536) -->
+<!-- 3. Thẻ bài kết quả -->
 <div id="card-container" class="hidden my-auto z-10">
     <div id="card-front" class="relative w-[360px] h-[540px] rounded-2xl shadow-2xl bg-cover bg-no-repeat bg-center overflow-hidden animate-card drop-shadow-[0_15px_40px_rgba(0,0,0,0.85)]">
 
-        <!-- Avatar: Tọa độ khớp khung vòm bo trên góc trái -->
+        <!-- Avatar: Khớp khung vòm bo trên góc trái -->
         <div class="absolute top-[8.2%] left-[8.2%] w-[114px] h-[144px] rounded-t-[40px] rounded-b-lg overflow-hidden bg-black/50 flex items-center justify-center shadow-inner pointer-events-none">
             <img id="card-avatar" class="w-full h-full object-cover" alt="Avatar">
         </div>
 
-        <!-- Giới tính: Nằm giữa khung thoi viền kim loại -->
-        <div class="absolute top-[10.6%] right-[8%] w-[138px] flex justify-center items-center pointer-events-none">
+        <!-- Giới tính: Căn chính giữa khung thoi viền kim loại -->
+        <div class="absolute top-[9.0%] right-[8%] w-[138px] flex justify-center items-center pointer-events-none">
             <span id="card-gender" class="text-[11px] font-black tracking-[0.25em] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">NAM</span>
         </div>
 
         <!-- Căn cơ: Năm sinh -->
-        <div class="absolute top-[16.8%] right-[8%] w-[138px] text-center pointer-events-none">
+        <div class="absolute top-[14.8%] right-[8%] w-[138px] text-center pointer-events-none">
             <span id="card-year" class="text-[11px] font-mono tracking-wider text-slate-200 font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Căn cơ: 2007</span>
         </div>
 
-        <!-- Tên nhân vật: Chiều rộng 165px để tên không bị rớt dòng cụt lủn -->
-        <div class="absolute top-[22.2%] right-[5%] w-[165px] text-center px-1 pointer-events-none">
+        <!-- Tên nhân vật: Chiều rộng 165px -->
+        <div class="absolute top-[19.8%] right-[5%] w-[165px] text-center px-1 pointer-events-none">
             <h2 id="card-name" class="text-[13px] sm:text-[14px] font-black tracking-wide uppercase font-magic-title leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-white">
                 TRAN HUU PHUOC
             </h2>
         </div>
 
-        <!-- Khung 1: Mô tả nhân vật (pl-12 để né icon vẽ sẵn trên nền) -->
-        <div class="absolute top-[43.5%] left-[8%] right-[8%] h-[72px] flex flex-col justify-center pr-5 pl-12 pointer-events-none">
+        <!-- Khung 1: Mô tả nhân vật -->
+        <div class="absolute top-[42.8%] left-[7.5%] right-[7.5%] h-[74px] flex flex-col justify-center pr-3 pl-9 pointer-events-none">
             <p id="desc-title" class="text-[10px] uppercase font-bold tracking-wider mb-0.5">
                 MÔ TẢ NHÂN VẬT:
             </p>
@@ -128,8 +128,8 @@
             </p>
         </div>
 
-        <!-- Khung 2: Sấm truyền hôm nay (pl-12 để né icon vẽ sẵn trên nền) -->
-        <div class="absolute top-[61.5%] left-[8%] right-[8%] h-[72px] flex flex-col justify-center pr-5 pl-12 pointer-events-none">
+        <!-- Khung 2: Sấm truyền hôm nay -->
+        <div class="absolute top-[60.8%] left-[7.5%] right-[7.5%] h-[74px] flex flex-col justify-center pr-3 pl-9 pointer-events-none">
             <p id="oracle-title" class="text-[10px] uppercase font-bold tracking-wider mb-0.5">
                 SẤM TRUYỀN HÔM NAY:
             </p>
@@ -138,13 +138,13 @@
             </p>
         </div>
 
-        <!-- Nút Tải thẻ: Đè khít thanh kim loại thứ 1 -->
-        <button id="btn-download" class="absolute top-[75.2%] left-[14%] right-[14%] h-[36px] flex items-center justify-center font-black text-[11px] sm:text-xs uppercase tracking-widest transition active:scale-95 bg-transparent border-0 cursor-pointer z-20">
+        <!-- Nút Tải thẻ -->
+        <button id="btn-download" class="absolute top-[72.8%] left-[15%] right-[15%] h-[38px] flex items-center justify-center font-black text-[11px] sm:text-xs uppercase tracking-widest transition active:scale-95 bg-transparent border-0 cursor-pointer z-20">
             ✦ TẢI THẺ VỀ MÁY ✦
         </button>
 
-        <!-- Nút Quét lại: Đè khít thanh kim loại thứ 2 -->
-        <button id="btn-rescan" class="absolute top-[83.2%] left-[18%] right-[18%] h-[28px] flex items-center justify-center font-bold text-[10.5px] tracking-wider transition active:scale-95 bg-transparent border-0 cursor-pointer text-slate-300 hover:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] z-20">
+        <!-- Nút Quét lại -->
+        <button id="btn-rescan" class="absolute top-[81.2%] left-[18%] right-[18%] h-[30px] flex items-center justify-center font-bold text-[10.5px] tracking-wider transition active:scale-95 bg-transparent border-0 cursor-pointer text-slate-300 hover:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] z-20">
             Quét người khác
         </button>
 

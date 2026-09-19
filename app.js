@@ -104,7 +104,7 @@ function applyGenderTheme(gender) {
         oracleTitle.className = 'text-[10px] uppercase font-bold tracking-wider mb-0.5 text-amber-300';
         oracleText.className = 'text-[10.5px] leading-relaxed italic line-clamp-3 font-medium text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]';
 
-        btnDownload.className = 'absolute top-[75.2%] left-[14%] right-[14%] h-[36px] flex items-center justify-center font-black text-[11px] sm:text-xs uppercase tracking-widest text-amber-200 hover:text-amber-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] z-20';
+        btnDownload.className = 'absolute top-[72.8%] left-[15%] right-[15%] h-[38px] flex items-center justify-center font-black text-[11px] sm:text-xs uppercase tracking-widest text-amber-200 hover:text-amber-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] z-20';
 
         // Ambient Glow: Cosmic Blue & Gold
         document.body.style.backgroundColor = '#030714';
@@ -119,7 +119,7 @@ function applyGenderTheme(gender) {
         oracleTitle.className = 'text-[10px] uppercase font-bold tracking-wider mb-0.5 text-pink-300';
         oracleText.className = 'text-[10.5px] leading-relaxed italic line-clamp-3 font-medium text-pink-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]';
 
-        btnDownload.className = 'absolute top-[75.2%] left-[14%] right-[14%] h-[36px] flex items-center justify-center font-black text-[11px] sm:text-xs uppercase tracking-widest text-pink-200 hover:text-pink-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] z-20';
+        btnDownload.className = 'absolute top-[72.8%] left-[15%] right-[15%] h-[38px] flex items-center justify-center font-black text-[11px] sm:text-xs uppercase tracking-widest text-pink-200 hover:text-pink-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] z-20';
 
         // Ambient Glow: Mystic Purple & Rose
         document.body.style.backgroundColor = '#0c0314';
