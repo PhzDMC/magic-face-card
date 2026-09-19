@@ -39,6 +39,16 @@ function startVideo() {
         });
 }
 
+// 2.1. Tắt hoàn toàn phần cứng Camera giải phóng thiết bị
+function stopVideo() {
+    if (video && video.srcObject) {
+        const stream = video.srcObject;
+        const tracks = stream.getTracks();
+        tracks.forEach((track) => track.stop()); // Dừng hẳn luồng camera
+        video.srcObject = null;
+    }
+}
+
 // 3. Nạp vector nhận diện từ descriptors.json
 async function loadDescriptorsFromJson() {
     const res = await fetch('./descriptors.json');
@@ -106,7 +116,6 @@ function applyGenderTheme(gender) {
 
         btnDownload.className = 'absolute top-[72.8%] left-[15%] right-[15%] h-[38px] flex items-center justify-center font-black text-[11px] sm:text-xs uppercase tracking-widest text-amber-200 hover:text-amber-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] z-20';
 
-        // Ambient Glow: Cosmic Blue & Gold
         document.body.style.backgroundColor = '#030714';
         if (bgGlowTop) bgGlowTop.className = 'absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-600/25 rounded-full blur-[140px] transition-all duration-1000';
         if (bgGlowBottom) bgGlowBottom.className = 'absolute -bottom-40 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-amber-500/20 rounded-full blur-[150px] transition-all duration-1000';
@@ -121,7 +130,6 @@ function applyGenderTheme(gender) {
 
         btnDownload.className = 'absolute top-[72.8%] left-[15%] right-[15%] h-[38px] flex items-center justify-center font-black text-[11px] sm:text-xs uppercase tracking-widest text-pink-200 hover:text-pink-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] z-20';
 
-        // Ambient Glow: Mystic Purple & Rose
         document.body.style.backgroundColor = '#0c0314';
         if (bgGlowTop) bgGlowTop.className = 'absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-purple-600/30 rounded-full blur-[140px] transition-all duration-1000';
         if (bgGlowBottom) bgGlowBottom.className = 'absolute -bottom-40 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-pink-500/25 rounded-full blur-[150px] transition-all duration-1000';
@@ -134,7 +142,11 @@ function showCard(person, faceBox) {
     isProcessingCard = true;
     clearInterval(scanInterval);
 
+    // Chụp avatar xong
     captureAvatar(faceBox);
+
+    // TẮT NGAY CAMERA PHẦN CỨNG (biểu tượng camera trên trình duyệt sẽ tắt ngay lập tức)
+    stopVideo();
 
     const displayName = person.fullName || person.name || 'Vô Danh Pháp Sư';
     document.getElementById('card-name').innerText = displayName;
@@ -251,6 +263,7 @@ if (btnDownload) {
 const btnRescan = document.getElementById('btn-rescan');
 if (btnRescan) {
     btnRescan.addEventListener('click', () => {
+        stopVideo();
         location.reload();
     });
 }
