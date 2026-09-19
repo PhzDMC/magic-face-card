@@ -47,13 +47,13 @@
 </head>
 <body class="text-white min-h-screen flex flex-col items-center justify-center p-3 select-none overflow-x-hidden relative">
 
-<!-- Hiệu ứng quầng sáng động toàn trang đổi màu theo giới tính -->
+<!-- Quầng sáng hiệu ứng toàn màn hình -->
 <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
     <div id="bg-glow-top" class="absolute -top-40 left-1/2 -translate-x-1/2 w-[580px] h-[580px] bg-indigo-600/25 rounded-full blur-[130px] transition-all duration-1000"></div>
     <div id="bg-glow-bottom" class="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[620px] h-[620px] bg-amber-600/20 rounded-full blur-[140px] transition-all duration-1000"></div>
 </div>
 
-<!-- 1. Màn hình Chào (Landing Screen) -->
+<!-- 1. Màn hình Chào -->
 <div id="landing-container" class="flex flex-col items-center text-center max-w-md px-4 py-8 z-10">
     <div class="w-24 h-24 mb-6 relative flex items-center justify-center">
         <div class="absolute inset-0 rounded-full border border-amber-500/40 animate-spin-slow"></div>
@@ -72,8 +72,8 @@
     </button>
 </div>
 
-<!-- Tiêu đề trạng thái -->
-<div id="status-container" class="hidden text-center mb-4 z-10">
+<!-- Dòng trạng thái -->
+<div id="status-container" class="hidden text-center mb-4 z-10 px-4">
     <p class="text-[11px] uppercase tracking-[0.3em] text-amber-500/80 font-mono mb-1">Hệ thống bói toán thị giác</p>
     <h1 id="status" class="text-base sm:text-lg font-bold text-amber-400 tracking-wider transition-all duration-300">
         Đang nạp ma trận nhận diện...
@@ -81,12 +81,12 @@
 </div>
 
 <!-- 2. Vùng quét camera ma thuật -->
-<div id="camera-container" class="hidden relative flex items-center justify-center w-[320px] h-[320px] sm:w-[350px] sm:h-[350px] z-10">
+<div id="camera-container" class="hidden relative flex items-center justify-center w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] z-10">
     <div class="absolute inset-0 rounded-full border-2 border-dashed border-amber-500/40 animate-spin-slow pointer-events-none"></div>
     <div class="absolute inset-2 rounded-full border border-amber-400/20 animate-spin-reverse pointer-events-none"></div>
     <div class="absolute inset-4 rounded-full border-2 border-t-amber-500 border-r-transparent border-b-amber-500/50 border-l-transparent animate-spin-slow pointer-events-none"></div>
 
-    <div class="relative w-[270px] h-[270px] sm:w-[290px] sm:h-[290px] rounded-full overflow-hidden border-2 border-amber-400/70 shadow-[0_0_35px_rgba(245,158,11,0.25)] bg-black">
+    <div class="relative w-[260px] h-[260px] sm:w-[290px] sm:h-[290px] rounded-full overflow-hidden border-2 border-amber-400/70 shadow-[0_0_35px_rgba(245,158,11,0.25)] bg-black">
         <video id="video" width="290" height="290" autoplay muted playsinline class="w-full h-full object-cover" style="transform: scaleX(-1);"></video>
         <canvas id="overlay" class="absolute top-0 left-0 w-full h-full" style="transform: scaleX(-1);"></canvas>
     </div>
@@ -96,29 +96,29 @@
 <div id="card-container" class="hidden my-auto z-10">
     <div id="card-front" class="relative w-[360px] h-[540px] rounded-2xl shadow-2xl bg-cover bg-no-repeat bg-center overflow-hidden animate-card drop-shadow-[0_15px_40px_rgba(0,0,0,0.85)]">
 
-        <!-- Avatar: Khớp khung vòm bo trên góc trái -->
+        <!-- Avatar -->
         <div class="absolute top-[8.2%] left-[8.2%] w-[114px] h-[144px] rounded-t-[40px] rounded-b-lg overflow-hidden bg-black/50 flex items-center justify-center shadow-inner pointer-events-none">
             <img id="card-avatar" class="w-full h-full object-cover" alt="Avatar">
         </div>
 
-        <!-- Giới tính: Căn chính giữa khung thoi viền kim loại -->
+        <!-- Giới tính -->
         <div class="absolute top-[9.0%] right-[8%] w-[138px] flex justify-center items-center pointer-events-none">
             <span id="card-gender" class="text-[11px] font-black tracking-[0.25em] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">NAM</span>
         </div>
 
-        <!-- Căn cơ: Năm sinh -->
+        <!-- Căn cơ -->
         <div class="absolute top-[14.8%] right-[8%] w-[138px] text-center pointer-events-none">
             <span id="card-year" class="text-[11px] font-mono tracking-wider text-slate-200 font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Căn cơ: 2007</span>
         </div>
 
-        <!-- Tên nhân vật: Chiều rộng 165px -->
+        <!-- Tên nhân vật -->
         <div class="absolute top-[19.8%] right-[5%] w-[165px] text-center px-1 pointer-events-none">
             <h2 id="card-name" class="text-[13px] sm:text-[14px] font-black tracking-wide uppercase font-magic-title leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-white">
                 TRAN HUU PHUOC
             </h2>
         </div>
 
-        <!-- Khung 1: Mô tả nhân vật -->
+        <!-- Khung Mô tả -->
         <div class="absolute top-[42.8%] left-[7.5%] right-[7.5%] h-[74px] flex flex-col justify-center pr-3 pl-9 pointer-events-none">
             <p id="desc-title" class="text-[10px] uppercase font-bold tracking-wider mb-0.5">
                 MÔ TẢ NHÂN VẬT:
@@ -128,7 +128,7 @@
             </p>
         </div>
 
-        <!-- Khung 2: Sấm truyền hôm nay -->
+        <!-- Khung Sấm truyền -->
         <div class="absolute top-[60.8%] left-[7.5%] right-[7.5%] h-[74px] flex flex-col justify-center pr-3 pl-9 pointer-events-none">
             <p id="oracle-title" class="text-[10px] uppercase font-bold tracking-wider mb-0.5">
                 SẤM TRUYỀN HÔM NAY:

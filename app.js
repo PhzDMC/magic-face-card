@@ -19,44 +19,57 @@ let lastDetectedLabel = '';
 let isProcessingCard = false;
 const REQUIRED_MATCH_FRAMES = 5;
 
-// 1. Nạp hồ sơ từ data.json
+// 1. Tải hồ sơ người dùng
 async function loadUserData() {
     const res = await fetch('./data.json');
     userData = await res.json();
 }
 
-// 2. Mở Camera
+// 2. Mở camera tương thích cả Mobile (camera trước) & PC
 function startVideo() {
+    const constraints = {
+        video: {
+            facingMode: 'user', // Ưu tiên camera trước trên điện thoại
+            width: { ideal: 480 },
+            height: { ideal: 480 }
+        }
+    };
+
     return navigator.mediaDevices
-        .getUserMedia({ video: { width: { ideal: 480 }, height: { ideal: 480 } } })
+        .getUserMedia(constraints)
         .then((stream) => {
             video.srcObject = stream;
+            return new Promise((resolve) => {
+                video.onloadedmetadata = () => {
+                    video.play();
+                    resolve();
+                };
+            });
         })
         .catch((err) => {
-            console.error('Lỗi camera:', err);
-            statusText.innerText = 'Không thể mở Camera. Hãy cấp quyền!';
-            throw err;
+            console.error('Lỗi Camera:', err);
+            throw new Error('CAMERA_PERMISSION_DENIED');
         });
 }
 
-// 2.1. Tắt hoàn toàn phần cứng Camera giải phóng thiết bị
+// 2.1. Tắt luồng phần cứng camera ngay khi chụp xong
 function stopVideo() {
     if (video && video.srcObject) {
         const stream = video.srcObject;
         const tracks = stream.getTracks();
-        tracks.forEach((track) => track.stop()); // Dừng hẳn luồng camera
+        tracks.forEach((track) => track.stop());
         video.srcObject = null;
     }
 }
 
-// 3. Nạp vector nhận diện từ descriptors.json
+// 3. Tải vector nhận diện từ file descriptors.json
 async function loadDescriptorsFromJson() {
     const res = await fetch('./descriptors.json');
     const data = await res.json();
     return data.map((item) => faceapi.LabeledFaceDescriptors.fromJSON(item));
 }
 
-// 4. Cắt chân dung trực tiếp từ luồng Video
+// 4. Chụp và crop avatar trực tiếp từ video
 function captureAvatar(box) {
     if (!box || !video.videoWidth) return;
     const ctx = cropCanvas.getContext('2d');
@@ -96,7 +109,7 @@ async function getDailyOracle(fullName, birthYear) {
     }
 }
 
-// 6. Áp dụng phong cách và ảnh nền theo Nam / Nữ
+// 6. Áp dụng phong cách và quầng sáng nền theo giới tính
 function applyGenderTheme(gender) {
     const isMale = !gender || gender.toLowerCase() === 'nam';
     const genderBadge = document.getElementById('card-gender');
@@ -142,11 +155,8 @@ function showCard(person, faceBox) {
     isProcessingCard = true;
     clearInterval(scanInterval);
 
-    // Chụp avatar xong
     captureAvatar(faceBox);
-
-    // TẮT NGAY CAMERA PHẦN CỨNG (biểu tượng camera trên trình duyệt sẽ tắt ngay lập tức)
-    stopVideo();
+    stopVideo(); // Tắt hoàn toàn camera sau khi đã chụp
 
     const displayName = person.fullName || person.name || 'Vô Danh Pháp Sư';
     document.getElementById('card-name').innerText = displayName;
@@ -161,16 +171,19 @@ function showCard(person, faceBox) {
     statusText.innerText = '✦ Nhận diện chân dung thành công! ✦';
 }
 
-// 8. Kích hoạt quét camera
+// 8. Bắt đầu phiên quét
 async function startScanningSession() {
     landingContainer.classList.add('hidden');
     statusContainer.classList.remove('hidden');
     cameraContainer.classList.remove('hidden');
     statusText.innerText = 'Đang kích hoạt ma trận...';
 
-    const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+    // CDN jsdelivr tốc độ cao, không bị chặn bởi mạng 4G
+    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
 
     try {
+        statusText.innerText = 'Đang nạp AI nhận diện...';
+
         const [_, labeledDescriptors] = await Promise.all([
             loadUserData(),
             loadDescriptorsFromJson(),
@@ -180,48 +193,54 @@ async function startScanningSession() {
         ]);
 
         const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.48);
-        statusText.innerText = 'Đang dò tìm linh hồn... Hãy nhìn thẳng camera';
+
+        statusText.innerText = 'Đang mở Camera... Hãy bấm CHO PHÉP (Allow)';
         await startVideo();
 
-        video.addEventListener('play', () => {
-            const displaySize = { width: video.videoWidth || 290, height: video.videoHeight || 290 };
-            faceapi.matchDimensions(canvas, displaySize);
+        statusText.innerText = 'Đang dò tìm linh hồn... Hãy nhìn thẳng camera';
 
-            scanInterval = setInterval(async () => {
-                if (isProcessingCard) return;
+        const displaySize = { width: video.videoWidth || 290, height: video.videoHeight || 290 };
+        faceapi.matchDimensions(canvas, displaySize);
 
-                const detection = await faceapi
-                    .detectSingleFace(video)
-                    .withFaceLandmarks()
-                    .withFaceDescriptor();
+        scanInterval = setInterval(async () => {
+            if (isProcessingCard) return;
 
-                if (detection) {
-                    const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+            const detection = await faceapi
+                .detectSingleFace(video)
+                .withFaceLandmarks()
+                .withFaceDescriptor();
 
-                    if (bestMatch.label !== 'unknown') {
-                        if (bestMatch.label === lastDetectedLabel) {
-                            matchCount++;
-                            statusText.innerText = `Đang kết nối: ${Math.min(100, Math.round((matchCount / REQUIRED_MATCH_FRAMES) * 100))}%`;
-                        } else {
-                            lastDetectedLabel = bestMatch.label;
-                            matchCount = 1;
-                        }
+            if (detection) {
+                const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
 
-                        if (matchCount >= REQUIRED_MATCH_FRAMES) {
-                            const person = userData.find((u) => u.id === bestMatch.label);
-                            if (person) showCard(person, detection.detection.box);
-                        }
+                if (bestMatch.label !== 'unknown') {
+                    if (bestMatch.label === lastDetectedLabel) {
+                        matchCount++;
+                        statusText.innerText = `Đang kết nối: ${Math.min(100, Math.round((matchCount / REQUIRED_MATCH_FRAMES) * 100))}%`;
                     } else {
-                        matchCount = 0;
-                        lastDetectedLabel = '';
-                        statusText.innerText = 'Đang dò tìm linh hồn... Hãy nhìn thẳng camera';
+                        lastDetectedLabel = bestMatch.label;
+                        matchCount = 1;
                     }
+
+                    if (matchCount >= REQUIRED_MATCH_FRAMES) {
+                        const person = userData.find((u) => u.id === bestMatch.label);
+                        if (person) showCard(person, detection.detection.box);
+                    }
+                } else {
+                    matchCount = 0;
+                    lastDetectedLabel = '';
+                    statusText.innerText = 'Đang dò tìm linh hồn... Hãy nhìn thẳng camera';
                 }
-            }, 160);
-        });
+            }
+        }, 160);
+
     } catch (error) {
-        console.error('Lỗi khởi động:', error);
-        statusText.innerText = 'Lỗi nạp tài nguyên ma thuật!';
+        console.error('Chi tiết lỗi:', error);
+        if (error.message === 'CAMERA_PERMISSION_DENIED') {
+            statusText.innerText = 'Hãy CẤP QUYỀN CAMERA cho trình duyệt để tiếp tục!';
+        } else {
+            statusText.innerText = 'Lỗi nạp dữ liệu nhận diện (kiểm tra lại 4G hoặc descriptors.json)!';
+        }
     }
 }
 
