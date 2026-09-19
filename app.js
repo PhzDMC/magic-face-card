@@ -41,8 +41,6 @@ async function loadDescriptorsFromJson() {
     return data.map((item) => faceapi.LabeledFaceDescriptors.fromJSON(item));
 }
 
-// 4. Gọi Gemini API gieo quẻ vận mệnh qua Bearer Token
-const GEMINI_API_KEY = "AQ.Ab8RN6JzfJY3griHcdheCa8_zq2Jd2jTP3G2oe9xXH8D4uC1rA";
 
 async function getDailyOracle(fullName, birthYear) {
     const oracleEl = document.getElementById('card-oracle');
