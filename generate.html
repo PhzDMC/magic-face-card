@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trích Xuất Face Descriptors</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4">
+
+<div class="max-w-lg w-full bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl">
+    <h1 class="text-xl font-black text-amber-400 text-center mb-1">✦ TRÍCH XUẤT DESCRIPTORS ✦</h1>
+    <p class="text-xs text-slate-400 text-center mb-5">Đọc ảnh từ thư mục labeled_images: ban_than, tu_mup, mai_chi</p>
+
+    <button id="btn-run" onclick="generate()" class="w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 shadow-lg shadow-amber-500/20 transition active:scale-95 cursor-pointer">
+        BẮT ĐẦU QUÉT & TẢI DESCRIPTORS.JSON
+    </button>
+
+    <div class="mt-4">
+        <p class="text-[11px] font-mono text-slate-400 mb-1">Nhật ký xử lý:</p>
+        <div id="log-box" class="p-3 bg-black/60 rounded-xl text-xs font-mono h-56 overflow-y-auto space-y-1 text-slate-300 border border-slate-800">
+            Chờ khởi động...
+        </div>
+    </div>
+</div>
+
+<script>
+    const PEOPLE = [
+        { label: 'ban_than', count: 2 },
+        { label: 'tu_mup', count: 2 },
+        { label: 'mai_chi', count: 2 }
+    ];
+
+    const logBox = document.getElementById('log-box');
+    function log(msg, color = 'text-slate-300') {
+        logBox.innerHTML += `<div class="${color}">> ${msg}</div>`;
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    async function generate() {
+        const btn = document.getElementById('btn-run');
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+        log("Đang nạp AI Models nhận diện...", "text-amber-400");
+        const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+
+        try {
+            await Promise.all([
+                faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+                faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+            ]);
+            log("Đã nạp AI Models thành công!", "text-green-400");
+        } catch (err) {
+            log("Lỗi tải AI Models. Vui lòng kiểm tra mạng!", "text-red-400");
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            return;
+        }
+
+        const fullDescriptors = [];
+
+        for (const person of PEOPLE) {
+            log(`Đang quét đối tượng: [${person.label}]...`, "text-cyan-400");
+            const personDescriptors = [];
+
+            for (let i = 1; i <= person.count; i++) {
+                // Đã sửa đường dẫn thành ./labeled_images/
+                const imgPath = `./labeled_images/${person.label}/${i}.jpg`;
+                try {
+                    const img = await faceapi.fetchImage(imgPath);
+                    const detection = await faceapi
+                        .detectSingleFace(img)
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+
+                    if (detection) {
+                        personDescriptors.push(Array.from(detection.descriptor));
+                        log(`  ✔ Nhận diện tốt: ${person.label}/${i}.jpg`, "text-green-400");
+                    } else {
+                        log(`  ✖ Không tìm thấy mặt trong: ${person.label}/${i}.jpg`, "text-yellow-400");
+                    }
+                } catch (e) {
+                    log(`  ✖ Không tìm thấy file ảnh: ${imgPath}`, "text-red-400");
+                }
+            }
+
+            if (personDescriptors.length > 0) {
+                fullDescriptors.push({
+                    label: person.label,
+                    descriptors: personDescriptors
+                });
+            } else {
+                log(`  ⚠ Cảnh báo: Không có vector nào cho [${person.label}]`, "text-red-400");
+            }
+        }
+
+        if (fullDescriptors.length === 0) {
+            log("Thất bại: Không trích xuất được khuôn mặt nào!", "text-red-500");
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            return;
+        }
+
+        log("Trích xuất hoàn tất! Bắt đầu tải file descriptors.json...", "text-amber-400");
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullDescriptors, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "descriptors.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+
+        log("✦ HOÀN THÀNH: descriptors.json ĐÃ ĐƯỢC TẢI VỀ! ✦", "text-green-400 font-bold");
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+</script>
+</body>
+</html>

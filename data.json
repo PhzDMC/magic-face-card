@@ -1,9 +1,23 @@
 [
   {
     "id": "ban_than",
-    "fullName": "Tran Huu Phuoc",
+    "fullName": "Trần Hữu Phước",
     "gender": "Nam",
     "birthYear": 2007,
-    "description": "Pháp sư thức đêm luyện code, sở hữu tuyệt chiêu trễ hẹn không đối thủ và miễn nhiễm với mọi loại deadline."
+    "description": "Tôn trọng, cổ điển."
+  },
+  {
+    "id": "tu_mup",
+    "fullName": "Từ Văn Phước",
+    "gender": "Nam",
+    "birthYear": 2007,
+    "description": "Bựa chuối."
+  },
+  {
+    "id": "mai_chi",
+    "fullName": "Dương Mai Chi",
+    "gender": "Nữ",
+    "birthYear": 2007,
+    "description": "Con người đa nhân cách."
   }
 ]
