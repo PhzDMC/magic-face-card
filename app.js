@@ -20,7 +20,7 @@ let lastDetectedLabel = '';
 let isProcessingCard = false;
 const REQUIRED_MATCH_FRAMES = 5;
 
-// 1. Tải dữ liệu hồ sơ
+// 1. Tải hồ sơ người dùng
 async function loadUserData() {
     const res = await fetch('./data.json');
     userData = await res.json();
@@ -40,14 +40,14 @@ function startVideo() {
         });
 }
 
-// 3. Tải vector nhận diện
+// 3. Tải vector từ descriptors.json
 async function loadDescriptorsFromJson() {
     const res = await fetch('./descriptors.json');
     const data = await res.json();
     return data.map((item) => faceapi.LabeledFaceDescriptors.fromJSON(item));
 }
 
-// 4. Cắt chân dung trực tiếp từ camera
+// 4. Chụp & Crop avatar trực tiếp từ Video
 function captureAvatar(box) {
     if (!box || !video.videoWidth) return;
     const ctx = cropCanvas.getContext('2d');
@@ -65,7 +65,7 @@ function captureAvatar(box) {
     cardAvatar.src = cropCanvas.toDataURL('image/jpeg', 0.9);
 }
 
-// 5. Gieo quẻ từ Gemini API
+// 5. Gieo quẻ từ Gemini API qua Vercel
 async function getDailyOracle(fullName, birthYear) {
     const oracleEl = document.getElementById('card-oracle');
     oracleEl.innerText = "Đang gieo quẻ thiên cơ...";
@@ -87,7 +87,7 @@ async function getDailyOracle(fullName, birthYear) {
     }
 }
 
-// 6. Đổi màu thẻ và quầng sáng toàn trang theo Nam / Nữ
+// 6. Gán background và đổi màu nền toàn trang theo giới tính
 function applyGenderTheme(gender) {
     const isMale = !gender || gender.toLowerCase() === 'nam';
     const genderBadge = document.getElementById('card-gender');
@@ -98,7 +98,6 @@ function applyGenderTheme(gender) {
     const btnDownload = document.getElementById('btn-download');
 
     if (isMale) {
-        // Màu thẻ Nam: Vàng kim & Xanh bóng đêm
         cardFront.style.backgroundImage = "url('./assets/card_male_bg.png')";
         genderBadge.innerText = 'NAM';
         genderBadge.className = 'text-[11px] font-black tracking-[0.25em] text-amber-300 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]';
@@ -111,12 +110,11 @@ function applyGenderTheme(gender) {
 
         btnDownload.className = 'absolute top-[79.2%] left-[12%] right-[12%] h-[38px] flex items-center justify-center font-black text-xs uppercase tracking-widest text-amber-200 hover:text-amber-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]';
 
-        // Đổi tone màu nền toàn trang sang Cosmic Blue & Gold
+        // Đổi tone màu không gian sang Cosmic Blue & Gold
         document.body.style.backgroundColor = '#030714';
         if (bgGlowTop) bgGlowTop.className = 'absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-600/25 rounded-full blur-[140px] transition-all duration-1000';
         if (bgGlowBottom) bgGlowBottom.className = 'absolute -bottom-40 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-amber-500/20 rounded-full blur-[150px] transition-all duration-1000';
     } else {
-        // Màu thẻ Nữ: Hồng thạch anh & Tím
         cardFront.style.backgroundImage = "url('./assets/card_female_bg.png')";
         genderBadge.innerText = 'NỮ';
         genderBadge.className = 'text-[11px] font-black tracking-[0.25em] text-pink-300 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]';
@@ -129,14 +127,14 @@ function applyGenderTheme(gender) {
 
         btnDownload.className = 'absolute top-[79.2%] left-[12%] right-[12%] h-[38px] flex items-center justify-center font-black text-xs uppercase tracking-widest text-pink-200 hover:text-pink-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]';
 
-        // Đổi tone màu nền toàn trang sang Mystic Purple & Rose
+        // Đổi tone màu không gian sang Mystic Purple & Rose
         document.body.style.backgroundColor = '#0c0314';
         if (bgGlowTop) bgGlowTop.className = 'absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-purple-600/30 rounded-full blur-[140px] transition-all duration-1000';
         if (bgGlowBottom) bgGlowBottom.className = 'absolute -bottom-40 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-pink-500/25 rounded-full blur-[150px] transition-all duration-1000';
     }
 }
 
-// 7. Hiển thị thẻ bài
+// 7. Hiển thị và lật mở thẻ bài
 function showCard(person, faceBox) {
     if (isProcessingCard) return;
     isProcessingCard = true;
@@ -156,12 +154,13 @@ function showCard(person, faceBox) {
     cardContainer.classList.remove('hidden');
     statusText.innerText = '✦ Nhận diện chân dung thành công! ✦';
 
+    // Kích hoạt animation lật thẻ sang mặt trước
     setTimeout(() => {
-        cardInner.classList.add('rotate-y-180');
+        cardInner.classList.add('is-flipped');
     }, 200);
 }
 
-// 8. Bắt đầu quét camera
+// 8. Bắt đầu phiên quét khuôn mặt
 async function startScanningSession() {
     landingContainer.classList.add('hidden');
     statusContainer.classList.remove('hidden');
@@ -225,7 +224,7 @@ async function startScanningSession() {
     }
 }
 
-// Gắn sự kiện click trực tiếp
+// Gắn sự kiện kích hoạt
 if (btnStart) {
     btnStart.addEventListener('click', startScanningSession);
 }
