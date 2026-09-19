@@ -227,7 +227,7 @@ function showCard(person, faceBox) {
     document.getElementById('card-name').innerText = displayName;
 
     // Hiển thị ngày sinh đầy đủ lên thẻ
-    document.getElementById('card-year').innerText = `Căn cơ: ${birthDate}`;
+    document.getElementById('card-year').innerText = `Sinh thần: ${birthDate}`;
     document.getElementById('card-desc').innerText = `"${description}"`;
 
     applyGenderTheme(person.gender);
