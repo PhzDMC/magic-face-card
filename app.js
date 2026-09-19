@@ -3,75 +3,81 @@ const canvas = document.getElementById('overlay');
 const statusText = document.getElementById('status');
 const cameraContainer = document.getElementById('camera-container');
 const cardContainer = document.getElementById('card-container');
-const card = document.getElementById('card');
+const cardInner = document.getElementById('card-inner');
+const cardFront = document.getElementById('card-front');
 
 let userData = [];
 let scanInterval = null;
 
-// 1. Tải hồ sơ người dùng từ data.json
+// Biến kiểm soát đa khung hình để chống rung / nhận diện nhầm
+let matchCount = 0;
+let lastDetectedLabel = '';
+const REQUIRED_MATCH_FRAMES = 5;
+
+// 1. Tải hồ sơ người dùng
 async function loadUserData() {
     const res = await fetch('./data.json');
     userData = await res.json();
 }
 
-// 2. Mở Camera máy tính / điện thoại
+// 2. Mở camera
 function startVideo() {
     navigator.mediaDevices
-        .getUserMedia({ video: {} })
+        .getUserMedia({ video: { width: { ideal: 480 }, height: { ideal: 480 } } })
         .then((stream) => {
             video.srcObject = stream;
         })
         .catch((err) => {
-            console.error('Lỗi khi mở camera:', err);
-            statusText.innerText = 'Không thể mở Camera. Vui lòng cấp quyền!';
+            console.error('Lỗi camera:', err);
+            statusText.innerText = 'Không thể mở Camera. Hãy cấp quyền!';
         });
 }
 
-// 3. Tải các vector đặc trưng khuôn mặt từ file descriptors.json
+// 3. Tải vector từ descriptors.json
 async function loadDescriptorsFromJson() {
     const res = await fetch('./descriptors.json');
     const data = await res.json();
     return data.map((item) => faceapi.LabeledFaceDescriptors.fromJSON(item));
 }
 
-// 4. Hiển thị thẻ bài ma thuật khi nhận diện chính xác
+// 4. Hiển thị thẻ bài với hiệu ứng lật 3D
 function showCard(person) {
-    // Dừng quét tiếp để giữ ổn định
     clearInterval(scanInterval);
 
-    // Ẩn camera, hiện thẻ bài
-    cameraContainer.classList.add('hidden');
-    cardContainer.classList.remove('hidden');
-    cardContainer.classList.add('flex');
-    statusText.innerText = 'Nhận diện thành công!';
-
-    // Đổ dữ liệu vào thẻ
+    // Điền dữ liệu
     document.getElementById('card-name').innerText = person.fullName;
     document.getElementById('card-gender').innerText = person.gender;
     document.getElementById('card-year').innerText = `Căn cơ: ${person.birthYear}`;
     document.getElementById('card-desc').innerText = `"${person.description}"`;
 
-    // Đổi màu giao diện theo Giới tính
+    // Thay đổi màu thẻ theo giới tính
     if (person.gender && person.gender.toLowerCase() === 'nam') {
-        card.className =
-            'w-80 rounded-2xl p-6 border-2 border-amber-500 bg-gradient-to-b from-slate-900 via-slate-900 to-amber-950 shadow-amber-500/20 shadow-2xl';
+        cardFront.className =
+            'absolute inset-0 backface-hidden rotate-y-180 rounded-2xl p-6 border-2 border-amber-500 bg-gradient-to-b from-slate-900 via-slate-900 to-amber-950 shadow-[0_0_35px_rgba(245,158,11,0.25)] flex flex-col justify-between';
         document.getElementById('card-gender').className =
-            'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/40';
+            'px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/40';
     } else {
-        card.className =
-            'w-80 rounded-2xl p-6 border-2 border-pink-500 bg-gradient-to-b from-slate-900 via-slate-900 to-pink-950 shadow-pink-500/20 shadow-2xl';
+        cardFront.className =
+            'absolute inset-0 backface-hidden rotate-y-180 rounded-2xl p-6 border-2 border-pink-500 bg-gradient-to-b from-slate-900 via-slate-900 to-pink-950 shadow-[0_0_35px_rgba(236,72,153,0.25)] flex flex-col justify-between';
         document.getElementById('card-gender').className =
-            'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-pink-500/20 text-pink-400 border border-pink-500/40';
+            'px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-pink-500/20 text-pink-400 border border-pink-500/40';
     }
+
+    // Chuyển màn hình & thực hiện animation lật bài
+    cameraContainer.classList.add('hidden');
+    cardContainer.classList.remove('hidden');
+    statusText.innerText = '✦ Nhận diện chân dung thành công! ✦';
+
+    // Lật từ mặt úp sang mặt ngửa sau 150ms
+    setTimeout(() => {
+        cardInner.classList.add('rotate-y-180');
+    }, 150);
 }
 
-// 5. Khởi tạo toàn bộ hệ thống
+// 5. Khởi động toàn bộ
 async function init() {
-    statusText.innerText = 'Đang nạp ma trận nhận diện...';
-
-    // Dùng link CDN GitHub Raw chứa sẵn weights model chính thức của face-api.js
-    const MODEL_URL =
-        'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+    statusText.innerText = 'Đang kích hoạt ma trận...';
+    const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
 
     try {
         const [_, labeledDescriptors] = await Promise.all([
@@ -83,12 +89,11 @@ async function init() {
         ]);
 
         const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.48);
-
-        statusText.innerText = 'Đang quét luồng khí... Hãy nhìn thẳng camera';
+        statusText.innerText = 'Đang dò tìm linh hồn... Hãy nhìn thẳng camera';
         startVideo();
 
         video.addEventListener('play', () => {
-            const displaySize = { width: video.width, height: video.height };
+            const displaySize = { width: video.videoWidth || 310, height: video.videoHeight || 310 };
             faceapi.matchDimensions(canvas, displaySize);
 
             scanInterval = setInterval(async () => {
@@ -101,30 +106,42 @@ async function init() {
                     const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
 
                     if (bestMatch.label !== 'unknown') {
-                        const person = userData.find((u) => u.id === bestMatch.label);
-                        if (person) {
-                            showCard(person);
+                        if (bestMatch.label === lastDetectedLabel) {
+                            matchCount++;
+                            statusText.innerText = `Đang kết nối: ${Math.min(100, Math.round((matchCount / REQUIRED_MATCH_FRAMES) * 100))}%`;
+                        } else {
+                            lastDetectedLabel = bestMatch.label;
+                            matchCount = 1;
                         }
+
+                        // Nhận diện liên tiếp đủ số frame quy định mới bung thẻ
+                        if (matchCount >= REQUIRED_MATCH_FRAMES) {
+                            const person = userData.find((u) => u.id === bestMatch.label);
+                            if (person) showCard(person);
+                        }
+                    } else {
+                        matchCount = 0;
+                        lastDetectedLabel = '';
+                        statusText.innerText = 'Đang dò tìm linh hồn... Hãy nhìn thẳng camera';
                     }
                 }
-            }, 200);
+            }, 160);
         });
     } catch (error) {
-        console.error('Lỗi khởi động:', error);
-        statusText.innerText = 'Lỗi nạp dữ liệu! Hãy kiểm tra Console (F12).';
+        console.error('Lỗi nạp hệ thống:', error);
+        statusText.innerText = 'Lỗi nạp tài nguyên ma thuật!';
     }
 }
 
-// 6. Xử lý tải thẻ bài thành ảnh PNG
+// 6. Xuất thẻ ảnh PNG
 document.getElementById('btn-download').addEventListener('click', () => {
-    const cardElement = document.getElementById('card');
     const btnDownload = document.getElementById('btn-download');
     const btnRescan = document.getElementById('btn-rescan');
 
     btnDownload.style.display = 'none';
     btnRescan.style.display = 'none';
 
-    html2canvas(cardElement, {
+    html2canvas(cardFront, {
         backgroundColor: null,
         scale: 2,
     })

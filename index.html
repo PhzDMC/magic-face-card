@@ -4,55 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magic Face Card</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Thư viện nhận diện khuôn mặt -->
     <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
-    <!-- Thư viện chụp màn hình xuất ảnh -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <!-- File logic điều khiển -->
     <script defer src="app.js"></script>
+    <style>
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes spin-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        .animate-spin-slow { animation: spin-slow 14s linear infinite; }
+        .animate-spin-reverse { animation: spin-reverse 9s linear infinite; }
+
+        /* Hiệu ứng lật thẻ 3D */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+    </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4 font-sans">
+<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4 font-sans select-none overflow-x-hidden">
 
-<h1 id="status" class="text-xl font-bold mb-4 text-amber-400 tracking-wider uppercase">
-    Đang tải hệ thống ma thuật...
-</h1>
-
-<!-- Vùng Camera -->
-<div id="camera-container" class="relative inline-block rounded-2xl overflow-hidden border-2 border-amber-500/50 shadow-2xl shadow-amber-500/10">
-    <video id="video" width="480" height="360" autoplay muted playsinline style="transform: scaleX(-1);"></video>
-    <canvas id="overlay" class="absolute top-0 left-0" style="transform: scaleX(-1);"></canvas>
+<!-- Tiêu đề trạng thái -->
+<div class="text-center mb-6">
+    <p class="text-xs uppercase tracking-[0.3em] text-amber-500/80 font-mono mb-1">Hệ thống bói toán thị giác</p>
+    <h1 id="status" class="text-lg md:text-xl font-bold text-amber-400 tracking-wider transition-all duration-300">
+        Đang nạp ma trận nhận diện...
+    </h1>
 </div>
 
-<!-- Thẻ bài ma thuật kết quả (Mặc định ẩn) -->
-<div id="card-container" class="hidden flex-col items-center">
-    <div id="card" class="w-80 rounded-2xl p-6 border-2 shadow-2xl relative transition-all duration-500">
+<!-- Vùng quét ma thuật -->
+<div id="camera-container" class="relative flex items-center justify-center w-[340px] h-[340px] sm:w-[380px] sm:h-[380px]">
+    <!-- Vòng tròn ma thuật xoay bên ngoài -->
+    <div class="absolute inset-0 rounded-full border-2 border-dashed border-amber-500/40 animate-spin-slow pointer-events-none"></div>
+    <div class="absolute inset-2 rounded-full border border-amber-400/20 animate-spin-reverse pointer-events-none"></div>
+    <div class="absolute inset-4 rounded-full border-2 border-t-amber-500 border-r-transparent border-b-amber-500/50 border-l-transparent animate-spin-slow pointer-events-none"></div>
 
-        <!-- Giới tính & Năm sinh -->
-        <div class="flex justify-between items-center border-b border-white/20 pb-3 mb-4">
-            <span id="card-gender" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"></span>
-            <span id="card-year" class="text-xs font-mono text-gray-300"></span>
+    <!-- Khung Video tròn -->
+    <div class="relative w-[280px] h-[280px] sm:w-[310px] sm:h-[310px] rounded-full overflow-hidden border-2 border-amber-400/70 shadow-[0_0_35px_rgba(245,158,11,0.25)] bg-black">
+        <video id="video" width="310" height="310" autoplay muted playsinline class="w-full h-full object-cover" style="transform: scaleX(-1);"></video>
+        <canvas id="overlay" class="absolute top-0 left-0 w-full h-full" style="transform: scaleX(-1);"></canvas>
+    </div>
+</div>
+
+<!-- Vùng Thẻ bài kết quả (Lật 3D) -->
+<div id="card-container" class="hidden perspective-1000 my-auto">
+    <div id="card-inner" class="relative w-80 h-[440px] transform-style-3d transition-transform duration-700 ease-out">
+
+        <!-- Mặt úp (Mặt sau lá bài) -->
+        <div class="absolute inset-0 backface-hidden rounded-2xl p-6 border-2 border-amber-500/60 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.2)]">
+            <div class="w-20 h-20 rounded-full border-2 border-dashed border-amber-400/80 flex items-center justify-center animate-spin-slow mb-4">
+                <span class="text-2xl">✦</span>
+            </div>
+            <p class="font-mono text-sm tracking-widest text-amber-300/80 uppercase">Khởi sinh chân dung...</p>
         </div>
 
-        <!-- Họ và tên -->
-        <h2 id="card-name" class="text-2xl font-black text-center mb-4 tracking-wide uppercase"></h2>
+        <!-- Mặt ngửa (Nội dung Thẻ bài) -->
+        <div id="card-front" class="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl p-6 border-2 shadow-2xl flex flex-col justify-between">
 
-        <!-- Khung mô tả ma thuật -->
-        <div class="bg-black/40 rounded-xl p-4 border border-white/10 mb-6">
-            <p class="text-xs text-amber-400/80 uppercase font-semibold mb-1">Mô tả nhân vật:</p>
-            <p id="card-desc" class="text-sm text-gray-200 leading-relaxed italic"></p>
+            <!-- Header thẻ: Giới tính & Năm sinh -->
+            <div>
+                <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4">
+                    <span id="card-gender" class="px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider"></span>
+                    <span id="card-year" class="text-xs font-mono text-gray-400"></span>
+                </div>
+
+                <!-- Tên người -->
+                <h2 id="card-name" class="text-2xl font-black text-center mb-4 tracking-wide uppercase"></h2>
+
+                <!-- Khung mô tả ma thuật -->
+                <div class="bg-black/45 rounded-xl p-4 border border-white/10 backdrop-blur-sm">
+                    <p class="text-[11px] text-amber-400/80 uppercase font-bold tracking-wider mb-1">Mô tả nhân vật:</p>
+                    <p id="card-desc" class="text-sm text-gray-200 leading-relaxed italic"></p>
+                </div>
+            </div>
+
+            <!-- Các nút bấm tương tác -->
+            <div class="space-y-2 mt-4">
+                <button id="btn-download" class="w-full py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 shadow-lg shadow-amber-500/25 transition">
+                    ✦ Tải Thẻ Về Máy ✦
+                </button>
+                <button id="btn-rescan" class="w-full py-1.5 rounded-xl font-semibold text-xs bg-white/10 hover:bg-white/20 border border-white/15 transition text-gray-300">
+                    Quét người khác
+                </button>
+            </div>
+
         </div>
-
-        <!-- Nút tải ảnh thẻ bài -->
-        <button id="btn-download" class="w-full mb-3 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 shadow-lg shadow-amber-500/30 transition">
-            ✦ Tải Thẻ Ma Thuật Về Máy ✦
-        </button>
-
-        <!-- Nút quét lại -->
-        <button id="btn-rescan" class="w-full py-2 rounded-xl font-semibold text-xs bg-white/10 hover:bg-white/20 border border-white/20 transition text-gray-300">
-            Quét người khác
-        </button>
     </div>
 </div>
 
