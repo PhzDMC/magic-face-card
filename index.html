@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magic Face Card</title>
-    <!-- Nhúng font hỗ trợ tiếng Việt đầy đủ -->
+    <!-- Font chuẩn tiếng Việt và font tiêu đề ma thuật -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,600;0,700;1,400;1,500&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
@@ -39,16 +39,33 @@
 </head>
 <body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4 select-none overflow-x-hidden">
 
-<!-- Tiêu đề trạng thái -->
-<div class="text-center mb-6">
+<!-- 1. Màn hình Chào (Landing Screen - Người dùng chủ động kích hoạt) -->
+<div id="landing-container" class="flex flex-col items-center text-center max-w-md px-4">
+    <div class="w-24 h-24 mb-6 relative flex items-center justify-center">
+        <div class="absolute inset-0 rounded-full border border-amber-500/40 animate-spin-slow"></div>
+        <div class="absolute inset-2 rounded-full border border-amber-400/20 animate-spin-reverse"></div>
+        <span class="text-4xl text-amber-400">🔮</span>
+    </div>
+    <p class="text-xs uppercase tracking-[0.35em] text-amber-500/80 font-mono mb-2">Hệ thống bói toán thị giác</p>
+    <h1 class="text-2xl sm:text-3xl font-black text-amber-400 tracking-wider mb-3 font-magic-title">MAGIC FACE CARD</h1>
+    <p class="text-xs sm:text-sm text-slate-300/80 mb-8 leading-relaxed">
+        Soi diện mạo, thấu căn cơ, nhận diện thiên mệnh thông qua thị giác nhân tạo và trí tuệ cổ xưa.
+    </p>
+    <button id="btn-start" class="px-8 py-3.5 rounded-full font-bold text-sm bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 shadow-[0_0_25px_rgba(245,158,11,0.4)] transition transform hover:scale-105 active:scale-95">
+        ✦ KHỞI KÍCH MA TRẬN ✦
+    </button>
+</div>
+
+<!-- Tiêu đề trạng thái (Ẩn ban đầu, chỉ hiện khi bắt đầu quét) -->
+<div id="status-container" class="hidden text-center mb-6">
     <p class="text-xs uppercase tracking-[0.3em] text-amber-500/80 font-mono mb-1">Hệ thống bói toán thị giác</p>
     <h1 id="status" class="text-lg md:text-xl font-bold text-amber-400 tracking-wider transition-all duration-300">
         Đang nạp ma trận nhận diện...
     </h1>
 </div>
 
-<!-- Vùng quét camera ma thuật -->
-<div id="camera-container" class="relative flex items-center justify-center w-[340px] h-[340px] sm:w-[380px] sm:h-[380px]">
+<!-- 2. Vùng quét camera ma thuật (Ẩn ban đầu) -->
+<div id="camera-container" class="hidden relative flex items-center justify-center w-[340px] h-[340px] sm:w-[380px] sm:h-[380px]">
     <div class="absolute inset-0 rounded-full border-2 border-dashed border-amber-500/40 animate-spin-slow pointer-events-none"></div>
     <div class="absolute inset-2 rounded-full border border-amber-400/20 animate-spin-reverse pointer-events-none"></div>
     <div class="absolute inset-4 rounded-full border-2 border-t-amber-500 border-r-transparent border-b-amber-500/50 border-l-transparent animate-spin-slow pointer-events-none"></div>
@@ -59,9 +76,9 @@
     </div>
 </div>
 
-<!-- Thẻ bài kết quả -->
+<!-- 3. Thẻ bài kết quả -->
 <div id="card-container" class="hidden perspective-1000 my-auto">
-    <div id="card-inner" class="relative w-80 h-[490px] transform-style-3d transition-transform duration-700 ease-out">
+    <div id="card-inner" class="relative w-[340px] sm:w-[360px] min-h-[520px] transform-style-3d transition-transform duration-700 ease-out">
 
         <!-- Mặt úp -->
         <div class="absolute inset-0 backface-hidden rounded-2xl p-6 border-2 border-amber-500/60 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.2)]">
@@ -72,33 +89,46 @@
         </div>
 
         <!-- Mặt ngửa -->
-        <div id="card-front" class="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl p-6 border-2 shadow-2xl flex flex-col justify-between">
+        <div id="card-front" class="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl p-5 border-2 shadow-2xl flex flex-col justify-between">
             <div>
-                <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-3">
-                    <span id="card-gender" class="px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider"></span>
-                    <span id="card-year" class="text-xs font-mono text-gray-400"></span>
+                <!-- Cụm trên: Avatar bên trái, Thông tin bên phải (theo mẫu thiết kế) -->
+                <div class="flex items-center gap-3.5 border-b border-white/10 pb-3 mb-3">
+                    <div id="avatar-wrapper" class="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-amber-400/80 flex-shrink-0 shadow-lg bg-black/60">
+                        <img id="card-avatar" class="w-full h-full object-cover" alt="Chân dung nhận diện">
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span id="card-gender" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"></span>
+                            <span id="card-year" class="text-[11px] font-mono text-gray-300"></span>
+                        </div>
+                        <h2 id="card-name" class="text-lg font-black tracking-wide uppercase font-magic-title truncate"></h2>
+                    </div>
                 </div>
 
-                <h2 id="card-name" class="text-2xl font-black text-center mb-3 tracking-wide uppercase font-magic-title"></h2>
-
-                <!-- Mô tả cố định từ data.json -->
-                <div class="bg-black/45 rounded-xl p-3.5 border border-white/10 backdrop-blur-sm">
-                    <p class="text-[11px] text-amber-400/80 uppercase font-bold tracking-wider mb-1">Mô tả nhân vật:</p>
+                <!-- Mô tả nhân vật -->
+                <div class="bg-black/45 rounded-xl p-3 border border-white/10 backdrop-blur-sm">
+                    <p id="desc-title" class="text-[11px] uppercase font-bold tracking-wider mb-1 flex items-center gap-1.5">
+                        <span id="desc-icon">✦</span> MÔ TẢ NHÂN VẬT:
+                    </p>
                     <p id="card-desc" class="text-xs text-gray-200 leading-relaxed italic"></p>
                 </div>
 
-                <!-- Quẻ bói từ Gemini API -->
-                <div class="bg-amber-950/30 rounded-xl p-3 border border-amber-500/30 mt-3">
-                    <p class="text-[11px] text-amber-400 uppercase font-bold tracking-wider mb-1">🔮 Sấm truyền hôm nay:</p>
-                    <p id="card-oracle" class="text-xs text-amber-200 leading-relaxed italic">
+                <!-- Quẻ sấm truyền hôm nay -->
+                <div id="oracle-box" class="rounded-xl p-3 border mt-3 bg-black/40">
+                    <p id="oracle-title" class="text-[11px] uppercase font-bold tracking-wider mb-1 flex items-center gap-1.5">
+                        <span id="oracle-icon">📜</span> SẤM TRUYỀN HÔM NAY:
+                    </p>
+                    <p id="card-oracle" class="text-xs leading-relaxed italic font-medium">
                         Đang xin thiên cơ...
                     </p>
                 </div>
             </div>
 
+            <!-- Nút thao tác -->
             <div class="space-y-2 mt-3">
-                <button id="btn-download" class="w-full py-2 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 shadow-lg shadow-amber-500/25 transition">
-                    ✦ Tải Thẻ Về Máy ✦
+                <button id="btn-download" class="w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg transition">
+                    ✦ TẢI THẺ VỀ MÁY ✦
                 </button>
                 <button id="btn-rescan" class="w-full py-1.5 rounded-xl font-semibold text-xs bg-white/10 hover:bg-white/20 border border-white/15 transition text-gray-300">
                     Quét người khác
@@ -108,6 +138,9 @@
 
     </div>
 </div>
+
+<!-- Canvas ẩn dùng chụp và crop ảnh đại diện trực tiếp từ video -->
+<canvas id="crop-canvas" class="hidden"></canvas>
 
 </body>
 </html>
