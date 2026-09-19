@@ -5,7 +5,6 @@ const landingContainer = document.getElementById('landing-container');
 const statusContainer = document.getElementById('status-container');
 const cameraContainer = document.getElementById('camera-container');
 const cardContainer = document.getElementById('card-container');
-const cardInner = document.getElementById('card-inner');
 const cardFront = document.getElementById('card-front');
 const cropCanvas = document.getElementById('crop-canvas');
 const cardAvatar = document.getElementById('card-avatar');
@@ -20,13 +19,13 @@ let lastDetectedLabel = '';
 let isProcessingCard = false;
 const REQUIRED_MATCH_FRAMES = 5;
 
-// 1. Tải hồ sơ người dùng
+// 1. Nạp danh sách người dùng
 async function loadUserData() {
     const res = await fetch('./data.json');
     userData = await res.json();
 }
 
-// 2. Mở camera
+// 2. Mở Camera
 function startVideo() {
     return navigator.mediaDevices
         .getUserMedia({ video: { width: { ideal: 480 }, height: { ideal: 480 } } })
@@ -40,14 +39,14 @@ function startVideo() {
         });
 }
 
-// 3. Tải vector từ descriptors.json
+// 3. Nạp vector nhận diện
 async function loadDescriptorsFromJson() {
     const res = await fetch('./descriptors.json');
     const data = await res.json();
     return data.map((item) => faceapi.LabeledFaceDescriptors.fromJSON(item));
 }
 
-// 4. Chụp & Crop avatar trực tiếp từ Video
+// 4. Cắt chân dung từ Camera
 function captureAvatar(box) {
     if (!box || !video.videoWidth) return;
     const ctx = cropCanvas.getContext('2d');
@@ -65,7 +64,7 @@ function captureAvatar(box) {
     cardAvatar.src = cropCanvas.toDataURL('image/jpeg', 0.9);
 }
 
-// 5. Gieo quẻ từ Gemini API qua Vercel
+// 5. Gieo quẻ qua Gemini API
 async function getDailyOracle(fullName, birthYear) {
     const oracleEl = document.getElementById('card-oracle');
     oracleEl.innerText = "Đang gieo quẻ thiên cơ...";
@@ -82,12 +81,12 @@ async function getDailyOracle(fullName, birthYear) {
         const oracleText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         oracleEl.innerText = oracleText ? `"${oracleText}"` : '"Hôm nay linh khí bình ổn, làm việc gì cũng hanh thông."';
     } catch (err) {
-        console.error("Lỗi:", err);
+        console.error("Lỗi Gemini:", err);
         oracleEl.innerText = '"Hôm nay xuất hành gặp bạn hiền, nên tránh xa deadline."';
     }
 }
 
-// 6. Gán background và đổi màu nền toàn trang theo giới tính
+// 6. Gán background và đổi màu sắc Nam / Nữ
 function applyGenderTheme(gender) {
     const isMale = !gender || gender.toLowerCase() === 'nam';
     const genderBadge = document.getElementById('card-gender');
@@ -110,7 +109,7 @@ function applyGenderTheme(gender) {
 
         btnDownload.className = 'absolute top-[79.2%] left-[12%] right-[12%] h-[38px] flex items-center justify-center font-black text-xs uppercase tracking-widest text-amber-200 hover:text-amber-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]';
 
-        // Đổi tone màu không gian sang Cosmic Blue & Gold
+        // Đổi tone nền toàn màn hình
         document.body.style.backgroundColor = '#030714';
         if (bgGlowTop) bgGlowTop.className = 'absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-600/25 rounded-full blur-[140px] transition-all duration-1000';
         if (bgGlowBottom) bgGlowBottom.className = 'absolute -bottom-40 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-amber-500/20 rounded-full blur-[150px] transition-all duration-1000';
@@ -127,14 +126,13 @@ function applyGenderTheme(gender) {
 
         btnDownload.className = 'absolute top-[79.2%] left-[12%] right-[12%] h-[38px] flex items-center justify-center font-black text-xs uppercase tracking-widest text-pink-200 hover:text-pink-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]';
 
-        // Đổi tone màu không gian sang Mystic Purple & Rose
         document.body.style.backgroundColor = '#0c0314';
         if (bgGlowTop) bgGlowTop.className = 'absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-purple-600/30 rounded-full blur-[140px] transition-all duration-1000';
         if (bgGlowBottom) bgGlowBottom.className = 'absolute -bottom-40 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-pink-500/25 rounded-full blur-[150px] transition-all duration-1000';
     }
 }
 
-// 7. Hiển thị và lật mở thẻ bài
+// 7. Hiển thị thẻ kết quả
 function showCard(person, faceBox) {
     if (isProcessingCard) return;
     isProcessingCard = true;
@@ -150,17 +148,13 @@ function showCard(person, faceBox) {
     applyGenderTheme(person.gender);
     getDailyOracle(displayName, person.birthYear);
 
+    // Ẩn camera và hiện ngay thẻ bài phía trước
     cameraContainer.classList.add('hidden');
     cardContainer.classList.remove('hidden');
     statusText.innerText = '✦ Nhận diện chân dung thành công! ✦';
-
-    // Kích hoạt animation lật thẻ sang mặt trước
-    setTimeout(() => {
-        cardInner.classList.add('is-flipped');
-    }, 200);
 }
 
-// 8. Bắt đầu phiên quét khuôn mặt
+// 8. Bắt đầu quét camera
 async function startScanningSession() {
     landingContainer.classList.add('hidden');
     statusContainer.classList.remove('hidden');
@@ -224,12 +218,11 @@ async function startScanningSession() {
     }
 }
 
-// Gắn sự kiện kích hoạt
 if (btnStart) {
     btnStart.addEventListener('click', startScanningSession);
 }
 
-// 9. Nút tải thẻ
+// 9. Tải thẻ về máy
 const btnDownload = document.getElementById('btn-download');
 if (btnDownload) {
     btnDownload.addEventListener('click', async () => {
@@ -241,11 +234,7 @@ if (btnDownload) {
             const capturedCanvas = await html2canvas(cardFront, {
                 backgroundColor: null,
                 scale: 2,
-                useCORS: true,
-                onclone: (clonedDoc) => {
-                    const clonedFront = clonedDoc.getElementById('card-front');
-                    if (clonedFront) clonedFront.style.transform = 'none';
-                }
+                useCORS: true
             });
 
             const link = document.createElement('a');

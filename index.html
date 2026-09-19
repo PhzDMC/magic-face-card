@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,600;0,700;1,400;1,500&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
 
-    <!-- Thư viện CDN -->
+    <!-- CDN Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -36,37 +36,24 @@
         .animate-spin-slow { animation: spin-slow 14s linear infinite; }
         .animate-spin-reverse { animation: spin-reverse 9s linear infinite; }
 
-        /* Hiệu ứng lật 3D thuần CSS */
-        .perspective-1000 {
-            perspective: 1000px;
+        @keyframes card-appear {
+            0% { opacity: 0; transform: scale(0.85); }
+            100% { opacity: 1; transform: scale(1); }
         }
-        .card-flipper {
-            transform-style: preserve-3d;
-            transition: transform 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
-        }
-        .card-flipper.is-flipped {
-            transform: rotateY(180deg);
-        }
-        .face-back {
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-        }
-        .face-front {
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            transform: rotateY(180deg);
+        .animate-card {
+            animation: card-appear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
     </style>
 </head>
 <body class="text-white min-h-screen flex flex-col items-center justify-center p-3 select-none overflow-x-hidden relative">
 
-<!-- Hiệu ứng quầng sáng động toàn trang thay đổi theo Nam/Nữ -->
+<!-- Hiệu ứng quầng sáng động toàn trang -->
 <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
     <div id="bg-glow-top" class="absolute -top-40 left-1/2 -translate-x-1/2 w-[580px] h-[580px] bg-indigo-600/25 rounded-full blur-[130px] transition-all duration-1000"></div>
     <div id="bg-glow-bottom" class="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[620px] h-[620px] bg-amber-600/20 rounded-full blur-[140px] transition-all duration-1000"></div>
 </div>
 
-<!-- 1. Màn hình Chào (Landing Screen) -->
+<!-- 1. Màn hình Chào -->
 <div id="landing-container" class="flex flex-col items-center text-center max-w-md px-4 py-8 z-10">
     <div class="w-24 h-24 mb-6 relative flex items-center justify-center">
         <div class="absolute inset-0 rounded-full border border-amber-500/40 animate-spin-slow"></div>
@@ -85,7 +72,7 @@
     </button>
 </div>
 
-<!-- Tiêu đề trạng thái (Ẩn ban đầu) -->
+<!-- Tiêu đề trạng thái -->
 <div id="status-container" class="hidden text-center mb-4 z-10">
     <p class="text-[11px] uppercase tracking-[0.3em] text-amber-500/80 font-mono mb-1">Hệ thống bói toán thị giác</p>
     <h1 id="status" class="text-base sm:text-lg font-bold text-amber-400 tracking-wider transition-all duration-300">
@@ -93,7 +80,7 @@
     </h1>
 </div>
 
-<!-- 2. Vùng quét camera ma thuật (Ẩn ban đầu) -->
+<!-- 2. Vùng quét camera ma thuật -->
 <div id="camera-container" class="hidden relative flex items-center justify-center w-[320px] h-[320px] sm:w-[350px] sm:h-[350px] z-10">
     <div class="absolute inset-0 rounded-full border-2 border-dashed border-amber-500/40 animate-spin-slow pointer-events-none"></div>
     <div class="absolute inset-2 rounded-full border border-amber-400/20 animate-spin-reverse pointer-events-none"></div>
@@ -105,74 +92,61 @@
     </div>
 </div>
 
-<!-- 3. Thẻ bài kết quả tỷ lệ chuẩn 1024x1536 (360px x 540px) -->
-<div id="card-container" class="hidden perspective-1000 my-auto z-10">
-    <div id="card-inner" class="relative w-[360px] h-[540px] card-flipper drop-shadow-[0_15px_35px_rgba(0,0,0,0.8)]">
+<!-- 3. Thẻ bài kết quả hoàn thiện (Hiển thị trực tiếp, không bị kẹt mặt sau) -->
+<div id="card-container" class="hidden my-auto z-10">
+    <div id="card-front" class="relative w-[360px] h-[540px] rounded-2xl shadow-2xl bg-cover bg-no-repeat bg-center overflow-hidden animate-card drop-shadow-[0_15px_40px_rgba(0,0,0,0.85)]">
 
-        <!-- Mặt úp -->
-        <div class="absolute inset-0 face-back rounded-2xl border-2 border-amber-500/60 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.2)]">
-            <div class="w-20 h-20 rounded-full border-2 border-dashed border-amber-400/80 flex items-center justify-center animate-spin-slow mb-4">
-                <span class="text-2xl">✦</span>
-            </div>
-            <p class="font-mono text-sm tracking-widest text-amber-300/80 uppercase">Khởi sinh chân dung...</p>
+        <!-- Avatar: Khung vòm bo trên góc trái -->
+        <div class="absolute top-[6.2%] left-[7%] w-[124px] h-[156px] rounded-t-[42px] rounded-b-xl overflow-hidden bg-black/50 flex items-center justify-center shadow-inner">
+            <img id="card-avatar" class="w-full h-full object-cover" alt="Avatar">
         </div>
 
-        <!-- Mặt ngửa: Căn chỉnh tọa độ theo viền khung rỗng -->
-        <div id="card-front" class="absolute inset-0 face-front rounded-2xl shadow-2xl bg-cover bg-no-repeat bg-center overflow-hidden">
-
-            <!-- Avatar: Khung vòm bo góc trên bên trái -->
-            <div class="absolute top-[6.2%] left-[7%] w-[124px] h-[156px] rounded-t-[42px] rounded-b-xl overflow-hidden bg-black/50 flex items-center justify-center shadow-inner">
-                <img id="card-avatar" class="w-full h-full object-cover" alt="Avatar">
-            </div>
-
-            <!-- Huy hiệu Giới tính -->
-            <div class="absolute top-[9.3%] right-[7.5%] w-[150px] flex justify-center items-center">
-                <span id="card-gender" class="text-[11px] font-black tracking-[0.25em] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">NAM</span>
-            </div>
-
-            <!-- Năm sinh (Căn cơ) -->
-            <div class="absolute top-[13.8%] right-[7.5%] w-[150px] text-center">
-                <span id="card-year" class="text-[11px] font-mono tracking-wider text-slate-200 font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Căn cơ: 2007</span>
-            </div>
-
-            <!-- Tên nhân vật -->
-            <div class="absolute top-[18.2%] right-[5.5%] w-[165px] text-center px-1">
-                <h2 id="card-name" class="text-[15px] sm:text-[16px] font-black tracking-wide uppercase font-magic-title leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-white">
-                    TRAN HUU PHUOC
-                </h2>
-            </div>
-
-            <!-- Khung 1: Mô tả nhân vật -->
-            <div class="absolute top-[41.5%] left-[8%] right-[8%] h-[82px] flex flex-col justify-center px-3">
-                <p id="desc-title" class="text-[10px] uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">
-                    <span id="desc-icon">✦</span> MÔ TẢ NHÂN VẬT:
-                </p>
-                <p id="card-desc" class="text-[11px] leading-relaxed italic line-clamp-3 text-slate-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                    "Pháp sư thức đêm luyện code..."
-                </p>
-            </div>
-
-            <!-- Khung 2: Sấm truyền hôm nay -->
-            <div class="absolute top-[59.8%] left-[8%] right-[8%] h-[82px] flex flex-col justify-center px-3">
-                <p id="oracle-title" class="text-[10px] uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">
-                    <span id="oracle-icon">📜</span> SẤM TRUYỀN HÔM NAY:
-                </p>
-                <p id="card-oracle" class="text-[11px] leading-relaxed italic line-clamp-3 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                    Đang xin thiên cơ...
-                </p>
-            </div>
-
-            <!-- Nút Tải thẻ (Nằm vừa vặn lên thanh nút kim loại thứ 1) -->
-            <button id="btn-download" class="absolute top-[79.2%] left-[12%] right-[12%] h-[38px] flex items-center justify-center font-black text-xs uppercase tracking-widest transition active:scale-95 bg-transparent border-0 cursor-pointer">
-                ✦ TẢI THẺ VỀ MÁY ✦
-            </button>
-
-            <!-- Nút Quét lại (Nằm vừa vặn lên thanh nút kim loại thứ 2) -->
-            <button id="btn-rescan" class="absolute top-[88.2%] left-[16%] right-[16%] h-[32px] flex items-center justify-center font-bold text-[11px] tracking-wider transition active:scale-95 bg-transparent border-0 cursor-pointer text-slate-300 hover:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                Quét người khác
-            </button>
-
+        <!-- Huy hiệu Giới tính -->
+        <div class="absolute top-[9.3%] right-[7.5%] w-[150px] flex justify-center items-center">
+            <span id="card-gender" class="text-[11px] font-black tracking-[0.25em] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">NAM</span>
         </div>
+
+        <!-- Năm sinh (Căn cơ) -->
+        <div class="absolute top-[13.8%] right-[7.5%] w-[150px] text-center">
+            <span id="card-year" class="text-[11px] font-mono tracking-wider text-slate-200 font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Căn cơ: 2007</span>
+        </div>
+
+        <!-- Tên nhân vật -->
+        <div class="absolute top-[18.2%] right-[5.5%] w-[165px] text-center px-1">
+            <h2 id="card-name" class="text-[15px] sm:text-[16px] font-black tracking-wide uppercase font-magic-title leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-white">
+                TRAN HUU PHUOC
+            </h2>
+        </div>
+
+        <!-- Khung Mô tả nhân vật -->
+        <div class="absolute top-[41.5%] left-[8%] right-[8%] h-[82px] flex flex-col justify-center px-3">
+            <p id="desc-title" class="text-[10px] uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">
+                <span id="desc-icon">✦</span> MÔ TẢ NHÂN VẬT:
+            </p>
+            <p id="card-desc" class="text-[11px] leading-relaxed italic line-clamp-3 text-slate-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                "Pháp sư thức đêm luyện code..."
+            </p>
+        </div>
+
+        <!-- Khung Sấm truyền hôm nay -->
+        <div class="absolute top-[59.8%] left-[8%] right-[8%] h-[82px] flex flex-col justify-center px-3">
+            <p id="oracle-title" class="text-[10px] uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">
+                <span id="oracle-icon">📜</span> SẤM TRUYỀN HÔM NAY:
+            </p>
+            <p id="card-oracle" class="text-[11px] leading-relaxed italic line-clamp-3 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                Đang xin thiên cơ...
+            </p>
+        </div>
+
+        <!-- Nút Tải thẻ -->
+        <button id="btn-download" class="absolute top-[79.2%] left-[12%] right-[12%] h-[38px] flex items-center justify-center font-black text-xs uppercase tracking-widest transition active:scale-95 bg-transparent border-0 cursor-pointer">
+            ✦ TẢI THẺ VỀ MÁY ✦
+        </button>
+
+        <!-- Nút Quét lại -->
+        <button id="btn-rescan" class="absolute top-[88.2%] left-[16%] right-[16%] h-[32px] flex items-center justify-center font-bold text-[11px] tracking-wider transition active:scale-95 bg-transparent border-0 cursor-pointer text-slate-300 hover:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+            Quét người khác
+        </button>
 
     </div>
 </div>
