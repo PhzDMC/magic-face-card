@@ -4,11 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magic Face Card</title>
+    <!-- Nhúng font hỗ trợ tiếng Việt đầy đủ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,600;0,700;1,400;1,500&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="app.js"></script>
     <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+        }
+        .font-magic-title {
+            font-family: 'Cinzel', 'Be Vietnam Pro', serif;
+        }
         @keyframes spin-slow {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -26,7 +37,7 @@
         .rotate-y-180 { transform: rotateY(180deg); }
     </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4 font-sans select-none overflow-x-hidden">
+<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-4 select-none overflow-x-hidden">
 
 <!-- Tiêu đề trạng thái -->
 <div class="text-center mb-6">
@@ -68,7 +79,7 @@
                     <span id="card-year" class="text-xs font-mono text-gray-400"></span>
                 </div>
 
-                <h2 id="card-name" class="text-2xl font-black text-center mb-3 tracking-wide uppercase"></h2>
+                <h2 id="card-name" class="text-2xl font-black text-center mb-3 tracking-wide uppercase font-magic-title"></h2>
 
                 <!-- Mô tả cố định từ data.json -->
                 <div class="bg-black/45 rounded-xl p-3.5 border border-white/10 backdrop-blur-sm">
@@ -79,7 +90,7 @@
                 <!-- Quẻ bói từ Gemini API -->
                 <div class="bg-amber-950/30 rounded-xl p-3 border border-amber-500/30 mt-3">
                     <p class="text-[11px] text-amber-400 uppercase font-bold tracking-wider mb-1">🔮 Sấm truyền hôm nay:</p>
-                    <p id="card-oracle" class="text-xs text-amber-200 leading-relaxed italic font-serif">
+                    <p id="card-oracle" class="text-xs text-amber-200 leading-relaxed italic">
                         Đang xin thiên cơ...
                     </p>
                 </div>
