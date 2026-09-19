@@ -4,17 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Magic Face Card</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔮</text></svg>">
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,600;0,700;1,400;1,500&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔮</text></svg>">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script defer src="app.js"></script>
+
     <style>
         body {
             font-family: 'Be Vietnam Pro', sans-serif;
+            background: radial-gradient(circle at 50% 30%, #171038 0%, #090817 60%, #030308 100%);
         }
         .font-magic-title {
             font-family: 'Cinzel', 'Be Vietnam Pro', serif;
@@ -36,48 +41,56 @@
         .rotate-y-180 { transform: rotateY(180deg); }
     </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen flex flex-col items-center justify-center p-3 select-none overflow-x-hidden">
+<body class="text-white min-h-screen flex flex-col items-center justify-center p-3 select-none overflow-x-hidden relative">
+
+<!-- Hiệu ứng quầng sáng huyền ảo dưới nền -->
+<div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[550px] h-[550px] bg-indigo-600/20 rounded-full blur-[120px]"></div>
+    <div class="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-amber-600/15 rounded-full blur-[140px]"></div>
+</div>
 
 <!-- 1. Màn hình Chào -->
-<div id="landing-container" class="flex flex-col items-center text-center max-w-md px-4">
+<div id="landing-container" class="flex flex-col items-center text-center max-w-md px-4 py-8 z-10">
     <div class="w-24 h-24 mb-6 relative flex items-center justify-center">
         <div class="absolute inset-0 rounded-full border border-amber-500/40 animate-spin-slow"></div>
         <div class="absolute inset-2 rounded-full border border-amber-400/20 animate-spin-reverse"></div>
         <span class="text-4xl text-amber-400">🔮</span>
     </div>
     <p class="text-xs uppercase tracking-[0.35em] text-amber-500/80 font-mono mb-2">Hệ thống bói toán thị giác</p>
-    <h1 class="text-2xl sm:text-3xl font-black text-amber-400 tracking-wider mb-3 font-magic-title">MAGIC FACE CARD</h1>
-    <p class="text-xs sm:text-sm text-slate-300/80 mb-8 leading-relaxed">
+    <h1 class="text-2xl sm:text-3xl font-black text-amber-400 tracking-wider mb-3 font-magic-title drop-shadow-[0_2px_10px_rgba(245,158,11,0.3)]">
+        MAGIC FACE CARD
+    </h1>
+    <p class="text-xs sm:text-sm text-slate-300/80 mb-8 leading-relaxed max-w-xs">
         Soi diện mạo, thấu căn cơ, nhận diện thiên mệnh thông qua thị giác nhân tạo và trí tuệ cổ xưa.
     </p>
-    <button id="btn-start" class="px-8 py-3.5 rounded-full font-bold text-sm bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 shadow-[0_0_25px_rgba(245,158,11,0.4)] transition transform hover:scale-105 active:scale-95">
+    <button id="btn-start" onclick="startScanningSession()" class="px-8 py-3.5 rounded-full font-bold text-sm bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 shadow-[0_0_30px_rgba(245,158,11,0.5)] transition transform hover:scale-105 active:scale-95 cursor-pointer">
         ✦ KHỞI KÍCH MA TRẬN ✦
     </button>
 </div>
 
 <!-- Tiêu đề trạng thái -->
-<div id="status-container" class="hidden text-center mb-4">
-    <p class="text-xs uppercase tracking-[0.3em] text-amber-500/80 font-mono mb-1">Hệ thống bói toán thị giác</p>
+<div id="status-container" class="hidden text-center mb-4 z-10">
+    <p class="text-[11px] uppercase tracking-[0.3em] text-amber-500/80 font-mono mb-1">Hệ thống bói toán thị giác</p>
     <h1 id="status" class="text-base sm:text-lg font-bold text-amber-400 tracking-wider transition-all duration-300">
         Đang nạp ma trận nhận diện...
     </h1>
 </div>
 
 <!-- 2. Vùng quét camera ma thuật -->
-<div id="camera-container" class="hidden relative flex items-center justify-center w-[320px] h-[320px] sm:w-[360px] sm:h-[360px]">
+<div id="camera-container" class="hidden relative flex items-center justify-center w-[320px] h-[320px] sm:w-[350px] sm:h-[350px] z-10">
     <div class="absolute inset-0 rounded-full border-2 border-dashed border-amber-500/40 animate-spin-slow pointer-events-none"></div>
     <div class="absolute inset-2 rounded-full border border-amber-400/20 animate-spin-reverse pointer-events-none"></div>
     <div class="absolute inset-4 rounded-full border-2 border-t-amber-500 border-r-transparent border-b-amber-500/50 border-l-transparent animate-spin-slow pointer-events-none"></div>
 
-    <div class="relative w-[270px] h-[270px] sm:w-[300px] sm:h-[300px] rounded-full overflow-hidden border-2 border-amber-400/70 shadow-[0_0_35px_rgba(245,158,11,0.25)] bg-black">
-        <video id="video" width="300" height="300" autoplay muted playsinline class="w-full h-full object-cover" style="transform: scaleX(-1);"></video>
+    <div class="relative w-[270px] h-[270px] sm:w-[290px] sm:h-[290px] rounded-full overflow-hidden border-2 border-amber-400/70 shadow-[0_0_35px_rgba(245,158,11,0.25)] bg-black">
+        <video id="video" width="290" height="290" autoplay muted playsinline class="w-full h-full object-cover" style="transform: scaleX(-1);"></video>
         <canvas id="overlay" class="absolute top-0 left-0 w-full h-full" style="transform: scaleX(-1);"></canvas>
     </div>
 </div>
 
 <!-- 3. Thẻ bài kết quả đúng chuẩn tỷ lệ 1024x1536 (W: 360px, H: 540px) -->
-<div id="card-container" class="hidden perspective-1000 my-auto">
-    <div id="card-inner" class="relative w-[360px] h-[540px] transform-style-3d transition-transform duration-700 ease-out">
+<div id="card-container" class="hidden perspective-1000 my-auto z-10">
+    <div id="card-inner" class="relative w-[360px] h-[540px] transform-style-3d transition-transform duration-700 ease-out drop-shadow-[0_15px_35px_rgba(0,0,0,0.8)]">
 
         <!-- Mặt úp -->
         <div class="absolute inset-0 backface-hidden rounded-2xl border-2 border-amber-500/60 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.2)]">
@@ -87,58 +100,58 @@
             <p class="font-mono text-sm tracking-widest text-amber-300/80 uppercase">Khởi sinh chân dung...</p>
         </div>
 
-        <!-- Mặt ngửa: Đặt các layer tọa độ theo đúng mẫu khung vẽ -->
+        <!-- Mặt ngửa: Tọa độ đã tinh chỉnh khớp 100% từng chi tiết khung hình -->
         <div id="card-front" class="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl shadow-2xl bg-cover bg-no-repeat bg-center overflow-hidden">
 
-            <!-- Avatar: Khớp khung vòm bo trên góc trái (Top: 5.5%, Left: 6.2%, Size: 135px) -->
-            <div class="absolute top-[5.5%] left-[6.2%] w-[135px] h-[170px] rounded-t-[50px] rounded-b-xl overflow-hidden shadow-inner bg-black/40 flex items-center justify-center">
+            <!-- Avatar: Khung vòm bên trái (Top 6.2%, Left 7%, Width 124px, Height 156px) -->
+            <div class="absolute top-[6.2%] left-[7%] w-[124px] h-[156px] rounded-t-[42px] rounded-b-xl overflow-hidden bg-black/50 flex items-center justify-center shadow-inner">
                 <img id="card-avatar" class="w-full h-full object-cover" alt="Avatar">
             </div>
 
-            <!-- Huy hiệu Giới tính (Hộp nhỏ góc trên phải) -->
-            <div class="absolute top-[8.5%] right-[9.5%] w-[140px] text-center">
-                <span id="card-gender" class="text-xs font-black tracking-[0.2em] uppercase">NAM</span>
+            <!-- Huy hiệu Giới tính: Nằm lọt khít trong ô con thoi nhỏ trên cùng góc phải (Top: 9.3%) -->
+            <div class="absolute top-[9.3%] right-[7.5%] w-[150px] flex justify-center items-center">
+                <span id="card-gender" class="text-[11px] font-black tracking-[0.25em] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">NAM</span>
             </div>
 
-            <!-- Năm sinh (Căn cơ) -->
-            <div class="absolute top-[13.5%] right-[9.5%] w-[140px] text-center">
-                <span id="card-year" class="text-[11px] font-mono tracking-wider text-slate-300 font-semibold">Căn cơ: 2007</span>
+            <!-- Năm sinh (Căn cơ): Hạ xuống một chút để không bị dính vào ô giới tính (Top: 13.8%) -->
+            <div class="absolute top-[13.8%] right-[7.5%] w-[150px] text-center">
+                <span id="card-year" class="text-[11px] font-mono tracking-wider text-slate-200 font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Căn cơ: 2007</span>
             </div>
 
-            <!-- Tên nhân vật (Chữ in đậm lớn góc trên phải) -->
-            <div class="absolute top-[18.5%] right-[6.5%] w-[160px] text-center px-1">
-                <h2 id="card-name" class="text-base sm:text-[17px] font-black tracking-wider uppercase font-magic-title leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            <!-- Tên nhân vật: Cho khung rộng ra 165px để tên dài không bị bẻ đôi dòng (Top: 18.2%) -->
+            <div class="absolute top-[18.2%] right-[5.5%] w-[165px] text-center px-1">
+                <h2 id="card-name" class="text-[15px] sm:text-[16px] font-black tracking-wide uppercase font-magic-title leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-white">
                     TRAN HUU PHUOC
                 </h2>
             </div>
 
-            <!-- Khung Mô tả nhân vật (Top: 41.5%, Height: 75px) -->
-            <div class="absolute top-[41.5%] left-[8%] right-[8%] h-[78px] flex flex-col justify-center px-4">
+            <!-- Khung 1: Mô tả nhân vật (Top: 41.5%, căn giữa ô rỗng hoàn toàn) -->
+            <div class="absolute top-[41.5%] left-[8%] right-[8%] h-[82px] flex flex-col justify-center px-3">
                 <p id="desc-title" class="text-[10px] uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">
                     <span id="desc-icon">✦</span> MÔ TẢ NHÂN VẬT:
                 </p>
-                <p id="card-desc" class="text-[11px] leading-relaxed italic line-clamp-2 text-slate-100">
+                <p id="card-desc" class="text-[11px] leading-relaxed italic line-clamp-3 text-slate-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                     "Pháp sư thức đêm luyện code..."
                 </p>
             </div>
 
-            <!-- Khung Sấm truyền hôm nay (Top: 60%, Height: 75px) -->
-            <div class="absolute top-[60.5%] left-[8%] right-[8%] h-[78px] flex flex-col justify-center px-4">
+            <!-- Khung 2: Sấm truyền hôm nay (Top: 59.8%, căn giữa ô rỗng) -->
+            <div class="absolute top-[59.8%] left-[8%] right-[8%] h-[82px] flex flex-col justify-center px-3">
                 <p id="oracle-title" class="text-[10px] uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1">
                     <span id="oracle-icon">📜</span> SẤM TRUYỀN HÔM NAY:
                 </p>
-                <p id="card-oracle" class="text-[11px] leading-relaxed italic line-clamp-2 font-medium">
+                <p id="card-oracle" class="text-[11px] leading-relaxed italic line-clamp-3 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                     Đang xin thiên cơ...
                 </p>
             </div>
 
-            <!-- Nút Tải Thẻ Về Máy (Đè khít lên thanh nút kim loại thứ 1: Top 78.5%) -->
-            <button id="btn-download" class="absolute top-[78.5%] left-[11%] right-[11%] h-[38px] flex items-center justify-center font-bold text-xs uppercase tracking-widest transition active:scale-95 bg-transparent border-0 cursor-pointer">
+            <!-- Nút Tải Thẻ Về Máy: Đẩy xuống vị trí Top 79.2% để khớp chính giữa thanh kim loại vàng -->
+            <button id="btn-download" class="absolute top-[79.2%] left-[12%] right-[12%] h-[38px] flex items-center justify-center font-black text-xs uppercase tracking-widest transition active:scale-95 bg-transparent border-0 cursor-pointer">
                 ✦ TẢI THẺ VỀ MÁY ✦
             </button>
 
-            <!-- Nút Quét Người Khác (Đè khít lên thanh nút kim loại thứ 2: Top 87.5%) -->
-            <button id="btn-rescan" class="absolute top-[87.5%] left-[15%] right-[15%] h-[34px] flex items-center justify-center font-semibold text-[11px] tracking-wider transition active:scale-95 bg-transparent border-0 cursor-pointer text-slate-300 hover:text-white">
+            <!-- Nút Quét Người Khác: Đẩy xuống Top 88.2% nằm vừa vặn thanh nút kim loại dưới cùng -->
+            <button id="btn-rescan" class="absolute top-[88.2%] left-[16%] right-[16%] h-[32px] flex items-center justify-center font-bold text-[11px] tracking-wider transition active:scale-95 bg-transparent border-0 cursor-pointer text-slate-300 hover:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                 Quét người khác
             </button>
 
