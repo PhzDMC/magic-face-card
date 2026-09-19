@@ -1,0 +1,15 @@
+# Thư mục cấu hình của IDE
+.idea/
+.vscode/
+*.iml
+
+# Không đẩy thư mục ảnh gốc của bạn bè lên mạng (bảo mật riêng tư)
+labeled_images/
+
+# Không đẩy thư mục models nặng (do đã dùng link CDN trực tiếp)
+models/
+
+# File tạm và hệ điều hành
+.DS_Store
+Thumbs.db
+node_modules/
