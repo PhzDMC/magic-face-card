@@ -19,7 +19,7 @@ let lastDetectedLabel = '';
 let isProcessingCard = false;
 const REQUIRED_MATCH_FRAMES = 5;
 
-// 1. Nạp danh sách người dùng
+// 1. Nạp hồ sơ từ data.json
 async function loadUserData() {
     const res = await fetch('./data.json');
     userData = await res.json();
@@ -39,14 +39,14 @@ function startVideo() {
         });
 }
 
-// 3. Nạp vector nhận diện
+// 3. Nạp vector nhận diện từ descriptors.json
 async function loadDescriptorsFromJson() {
     const res = await fetch('./descriptors.json');
     const data = await res.json();
     return data.map((item) => faceapi.LabeledFaceDescriptors.fromJSON(item));
 }
 
-// 4. Cắt chân dung từ Camera
+// 4. Cắt chân dung trực tiếp từ luồng Video
 function captureAvatar(box) {
     if (!box || !video.videoWidth) return;
     const ctx = cropCanvas.getContext('2d');
@@ -86,12 +86,11 @@ async function getDailyOracle(fullName, birthYear) {
     }
 }
 
-// 6. Gán background và đổi màu sắc Nam / Nữ
+// 6. Áp dụng phong cách và ảnh nền theo Nam / Nữ
 function applyGenderTheme(gender) {
     const isMale = !gender || gender.toLowerCase() === 'nam';
     const genderBadge = document.getElementById('card-gender');
     const descTitle = document.getElementById('desc-title');
-    const descIcon = document.getElementById('desc-icon');
     const oracleTitle = document.getElementById('oracle-title');
     const oracleText = document.getElementById('card-oracle');
     const btnDownload = document.getElementById('btn-download');
@@ -101,15 +100,13 @@ function applyGenderTheme(gender) {
         genderBadge.innerText = 'NAM';
         genderBadge.className = 'text-[11px] font-black tracking-[0.25em] text-amber-300 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]';
 
-        descTitle.className = 'text-[10px] uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1 text-amber-300';
-        descIcon.innerText = '✦';
+        descTitle.className = 'text-[10px] uppercase font-bold tracking-wider mb-0.5 text-amber-300';
+        oracleTitle.className = 'text-[10px] uppercase font-bold tracking-wider mb-0.5 text-amber-300';
+        oracleText.className = 'text-[10.5px] leading-relaxed italic line-clamp-3 font-medium text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]';
 
-        oracleTitle.className = 'text-[10px] uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1 text-amber-300';
-        oracleText.className = 'text-[11px] leading-relaxed italic line-clamp-3 font-medium text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]';
+        btnDownload.className = 'absolute top-[75.2%] left-[14%] right-[14%] h-[36px] flex items-center justify-center font-black text-[11px] sm:text-xs uppercase tracking-widest text-amber-200 hover:text-amber-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] z-20';
 
-        btnDownload.className = 'absolute top-[79.2%] left-[12%] right-[12%] h-[38px] flex items-center justify-center font-black text-xs uppercase tracking-widest text-amber-200 hover:text-amber-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]';
-
-        // Đổi tone nền toàn màn hình
+        // Ambient Glow: Cosmic Blue & Gold
         document.body.style.backgroundColor = '#030714';
         if (bgGlowTop) bgGlowTop.className = 'absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-600/25 rounded-full blur-[140px] transition-all duration-1000';
         if (bgGlowBottom) bgGlowBottom.className = 'absolute -bottom-40 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-amber-500/20 rounded-full blur-[150px] transition-all duration-1000';
@@ -118,14 +115,13 @@ function applyGenderTheme(gender) {
         genderBadge.innerText = 'NỮ';
         genderBadge.className = 'text-[11px] font-black tracking-[0.25em] text-pink-300 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]';
 
-        descTitle.className = 'text-[10px] uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1 text-pink-300';
-        descIcon.innerText = '☽';
+        descTitle.className = 'text-[10px] uppercase font-bold tracking-wider mb-0.5 text-pink-300';
+        oracleTitle.className = 'text-[10px] uppercase font-bold tracking-wider mb-0.5 text-pink-300';
+        oracleText.className = 'text-[10.5px] leading-relaxed italic line-clamp-3 font-medium text-pink-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]';
 
-        oracleTitle.className = 'text-[10px] uppercase font-bold tracking-wider mb-0.5 flex items-center gap-1 text-pink-300';
-        oracleText.className = 'text-[11px] leading-relaxed italic line-clamp-3 font-medium text-pink-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]';
+        btnDownload.className = 'absolute top-[75.2%] left-[14%] right-[14%] h-[36px] flex items-center justify-center font-black text-[11px] sm:text-xs uppercase tracking-widest text-pink-200 hover:text-pink-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] z-20';
 
-        btnDownload.className = 'absolute top-[79.2%] left-[12%] right-[12%] h-[38px] flex items-center justify-center font-black text-xs uppercase tracking-widest text-pink-200 hover:text-pink-100 transition active:scale-95 cursor-pointer drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]';
-
+        // Ambient Glow: Mystic Purple & Rose
         document.body.style.backgroundColor = '#0c0314';
         if (bgGlowTop) bgGlowTop.className = 'absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-purple-600/30 rounded-full blur-[140px] transition-all duration-1000';
         if (bgGlowBottom) bgGlowBottom.className = 'absolute -bottom-40 left-1/2 -translate-x-1/2 w-[650px] h-[650px] bg-pink-500/25 rounded-full blur-[150px] transition-all duration-1000';
@@ -148,13 +144,12 @@ function showCard(person, faceBox) {
     applyGenderTheme(person.gender);
     getDailyOracle(displayName, person.birthYear);
 
-    // Ẩn camera và hiện ngay thẻ bài phía trước
     cameraContainer.classList.add('hidden');
     cardContainer.classList.remove('hidden');
     statusText.innerText = '✦ Nhận diện chân dung thành công! ✦';
 }
 
-// 8. Bắt đầu quét camera
+// 8. Kích hoạt quét camera
 async function startScanningSession() {
     landingContainer.classList.add('hidden');
     statusContainer.classList.remove('hidden');
