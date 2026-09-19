@@ -6,8 +6,8 @@ const cardContainer = document.getElementById('card-container');
 const cardInner = document.getElementById('card-inner');
 const cardFront = document.getElementById('card-front');
 
-// API Key vừa tạo từ Google AI Studio
-const GEMINI_API_KEY = "AQ.Ab8RN6Ivh8XiyGILgh92c4uDq2ojnidNzMILgvFG78Km3oZigA";
+// Key xác thực mới từ Google AI Studio
+const GEMINI_API_KEY = "AQ.Ab8RN6IJ3boA5cSJu-pljb9E08Ej0VCGsHk0DHCaL916OXcC7w";
 
 let userData = [];
 let scanInterval = null;
@@ -41,7 +41,7 @@ async function loadDescriptorsFromJson() {
     return data.map((item) => faceapi.LabeledFaceDescriptors.fromJSON(item));
 }
 
-// 4. Gọi Gemini API gieo quẻ vận mệnh
+// 4. Gọi Gemini API gieo quẻ vận mệnh qua Bearer Token
 async function getDailyOracle(fullName, birthYear) {
     const oracleEl = document.getElementById('card-oracle');
     oracleEl.innerText = "Đang gieo quẻ thiên cơ...";
@@ -50,10 +50,13 @@ async function getDailyOracle(fullName, birthYear) {
 
     try {
         const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
             {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${GEMINI_API_KEY}`
+                },
                 body: JSON.stringify({
                     contents: [{ parts: [{ text: prompt }] }]
                 })
@@ -79,10 +82,10 @@ function showCard(person) {
     document.getElementById('card-year').innerText = `Căn cơ: ${person.birthYear}`;
     document.getElementById('card-desc').innerText = `"${person.description}"`;
 
-    // Gọi Gemini gieo quẻ động
+    // Gieo quẻ vận mệnh từ Gemini
     getDailyOracle(person.fullName, person.birthYear);
 
-    // Thiết lập class giao diện theo giới tính
+    // Thiết lập màu sắc theo giới tính
     const baseClasses = 'absolute inset-0 backface-hidden rotate-y-180 rounded-2xl p-6 border-2 shadow-2xl flex flex-col justify-between';
     if (person.gender && person.gender.toLowerCase() === 'nam') {
         cardFront.className = `${baseClasses} border-amber-500 bg-gradient-to-b from-slate-900 via-slate-900 to-amber-950 shadow-[0_0_35px_rgba(245,158,11,0.25)]`;
@@ -92,18 +95,17 @@ function showCard(person) {
         document.getElementById('card-gender').className = 'px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-pink-500/20 text-pink-400 border border-pink-500/40';
     }
 
-    // Chuyển cảnh sang thẻ
+    // Chuyển cảnh sang thẻ và lật bài
     cameraContainer.classList.add('hidden');
     cardContainer.classList.remove('hidden');
     statusText.innerText = '✦ Nhận diện chân dung thành công! ✦';
 
-    // Lật từ mặt úp sang mặt ngửa
     setTimeout(() => {
         cardInner.classList.add('rotate-y-180');
     }, 200);
 }
 
-// 6. Khởi động toàn bộ
+// 6. Khởi động toàn bộ luồng nhận diện
 async function init() {
     statusText.innerText = 'Đang kích hoạt ma trận...';
     const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
