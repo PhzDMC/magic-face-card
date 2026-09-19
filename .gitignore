@@ -6,8 +6,9 @@
 # Không đẩy thư mục ảnh gốc của bạn bè lên mạng (bảo mật riêng tư)
 labeled_images/
 
-# Không đẩy thư mục models nặng (do đã dùng link CDN trực tiếp)
-models/
+# LƯU Ý: KHÔNG ignore models/ nữa — app.js và generate.html hiện tải model
+# trực tiếp từ thư mục cục bộ này (./models). Nếu bỏ qua thư mục này khi
+# push code, bản deploy trên Vercel sẽ thiếu model và trang sẽ không chạy được.
 
 # File tạm và hệ điều hành
 .DS_Store

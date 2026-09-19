@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Magic Face Card</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔮</text></svg>">
 
@@ -42,6 +42,13 @@
         }
         .animate-card {
             animation: card-appear 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Thẻ bài: khóa tỉ lệ 2:3 đúng bằng tỉ lệ ảnh nền gốc (1024x1536),
+           co giãn theo màn hình để không bao giờ tràn ngang trên điện thoại nhỏ */
+        #card-front {
+            width: min(360px, 92vw);
+            aspect-ratio: 2 / 3;
         }
     </style>
 </head>
@@ -94,32 +101,33 @@
 
 <!-- 3. Thẻ bài kết quả -->
 <div id="card-container" class="hidden my-auto z-10">
-    <div id="card-front" class="relative w-[360px] h-[540px] rounded-2xl shadow-2xl bg-cover bg-no-repeat bg-center overflow-hidden animate-card drop-shadow-[0_15px_40px_rgba(0,0,0,0.85)]">
+    <div id="card-front" class="relative rounded-2xl shadow-2xl bg-cover bg-no-repeat bg-center overflow-hidden animate-card drop-shadow-[0_15px_40px_rgba(0,0,0,0.85)]">
 
-        <!-- Avatar -->
-        <div class="absolute top-[8.2%] left-[8.2%] w-[114px] h-[144px] rounded-t-[40px] rounded-b-lg overflow-hidden bg-black/50 flex items-center justify-center shadow-inner pointer-events-none">
+        <!-- Avatar: kích thước/tọa độ đo trực tiếp trên ảnh nền 1024x1536 (khung vàng thật),
+             quy về % để luôn khớp khung dù thẻ co giãn theo màn hình -->
+        <div class="absolute top-[3.7%] left-[8.5%] w-[38%] h-[32%] rounded-t-[34%] rounded-b-[12%] overflow-hidden bg-black/50 flex items-center justify-center shadow-inner pointer-events-none">
             <img id="card-avatar" class="w-full h-full object-cover" alt="Avatar">
         </div>
 
         <!-- Giới tính -->
-        <div class="absolute top-[9.0%] right-[8%] w-[138px] flex justify-center items-center pointer-events-none">
+        <div class="absolute top-[9.0%] right-[8%] w-[38%] flex justify-center items-center pointer-events-none">
             <span id="card-gender" class="text-[11px] font-black tracking-[0.25em] uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">NAM</span>
         </div>
 
         <!-- Căn cơ -->
-        <div class="absolute top-[14.8%] right-[8%] w-[138px] text-center pointer-events-none">
+        <div class="absolute top-[14.8%] right-[8%] w-[38%] text-center pointer-events-none">
             <span id="card-year" class="text-[11px] font-mono tracking-wider text-slate-200 font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Căn cơ: 2007</span>
         </div>
 
         <!-- Tên nhân vật -->
-        <div class="absolute top-[19.8%] right-[5%] w-[165px] text-center px-1 pointer-events-none">
+        <div class="absolute top-[19.8%] right-[5%] w-[46%] text-center px-1 pointer-events-none">
             <h2 id="card-name" class="text-[13px] sm:text-[14px] font-black tracking-wide uppercase font-magic-title leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] text-white">
                 TRAN HUU PHUOC
             </h2>
         </div>
 
         <!-- Khung Mô tả -->
-        <div class="absolute top-[42.8%] left-[7.5%] right-[7.5%] h-[74px] flex flex-col justify-center pr-3 pl-9 pointer-events-none">
+        <div class="absolute top-[42.8%] left-[7.5%] right-[7.5%] h-[13.7%] flex flex-col justify-center pr-3 pl-9 pointer-events-none">
             <p id="desc-title" class="text-[10px] uppercase font-bold tracking-wider mb-0.5">
                 MÔ TẢ NHÂN VẬT:
             </p>
@@ -129,7 +137,7 @@
         </div>
 
         <!-- Khung Sấm truyền -->
-        <div class="absolute top-[60.8%] left-[7.5%] right-[7.5%] h-[74px] flex flex-col justify-center pr-3 pl-9 pointer-events-none">
+        <div class="absolute top-[60.8%] left-[7.5%] right-[7.5%] h-[13.7%] flex flex-col justify-center pr-3 pl-9 pointer-events-none">
             <p id="oracle-title" class="text-[10px] uppercase font-bold tracking-wider mb-0.5">
                 SẤM TRUYỀN HÔM NAY:
             </p>
@@ -138,13 +146,13 @@
             </p>
         </div>
 
-        <!-- Nút Tải thẻ -->
-        <button id="btn-download" class="absolute top-[72.8%] left-[15%] right-[15%] h-[38px] flex items-center justify-center font-black text-[11px] sm:text-xs uppercase tracking-widest transition active:scale-95 bg-transparent border-0 cursor-pointer z-20">
+        <!-- Nút Tải thẻ: canh theo khung pill lớn phía dưới ảnh nền -->
+        <button id="btn-download" class="absolute top-[75.5%] left-[16%] right-[16%] h-[6.3%] flex items-center justify-center font-black text-[11px] sm:text-xs uppercase tracking-widest transition active:scale-95 bg-transparent border-0 cursor-pointer z-20">
             ✦ TẢI THẺ VỀ MÁY ✦
         </button>
 
-        <!-- Nút Quét lại -->
-        <button id="btn-rescan" class="absolute top-[81.2%] left-[18%] right-[18%] h-[30px] flex items-center justify-center font-bold text-[10.5px] tracking-wider transition active:scale-95 bg-transparent border-0 cursor-pointer text-slate-300 hover:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] z-20">
+        <!-- Nút Quét lại: canh theo khung pill nhỏ phía dưới ảnh nền -->
+        <button id="btn-rescan" class="absolute top-[84.3%] left-[20%] right-[20%] h-[4.8%] flex items-center justify-center font-bold text-[10.5px] tracking-wider transition active:scale-95 bg-transparent border-0 cursor-pointer text-slate-300 hover:text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] z-20">
             Quét người khác
         </button>
 

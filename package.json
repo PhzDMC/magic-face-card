@@ -1,0 +1,10 @@
+{
+  "name": "magic-face-card",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ung dung the bai nhan dien khuon mat bang face-api.js, ket hop Gemini API de bay que 'sam truyen' hang ngay.",
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -11,7 +11,7 @@
 
 <div class="max-w-lg w-full bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-2xl">
     <h1 class="text-xl font-black text-amber-400 text-center mb-1">✦ TRÍCH XUẤT DESCRIPTORS ✦</h1>
-    <p class="text-xs text-slate-400 text-center mb-5">Đọc ảnh từ thư mục labeled_images: ban_than, tu_mup, mai_chi</p>
+    <p class="text-xs text-slate-400 text-center mb-5">Tự động dò toàn bộ ảnh trong labeled_images/&lt;tên&gt;/1.jpg, 2.jpg... cho tới khi hết ảnh</p>
 
     <button id="btn-run" onclick="generate()" class="w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-slate-950 shadow-lg shadow-amber-500/20 transition active:scale-95 cursor-pointer">
         BẮT ĐẦU QUÉT & TẢI DESCRIPTORS.JSON
@@ -26,16 +26,29 @@
 </div>
 
 <script>
-    const PEOPLE = [
-        { label: 'ban_than', count: 2 },
-        { label: 'tu_mup', count: 2 },
-        { label: 'mai_chi', count: 2 }
-    ];
+    // Danh sách người cần quét. KHÔNG cần khai số lượng ảnh — hệ thống sẽ tự dò
+    // lần lượt 1.jpg, 2.jpg, 3.jpg... cho tới khi không còn ảnh nữa (tối đa MAX_IMAGES_PER_PERSON).
+    // => Thêm/bớt ảnh trong thư mục labeled_images/<label>/ không cần sửa code ở đây nữa.
+    const PEOPLE = ['ban_than', 'tu_mup', 'mai_chi'];
+    const MAX_IMAGES_PER_PERSON = 30; // Giới hạn an toàn để vòng lặp dò ảnh không chạy vô hạn
+
+    // Dùng chung nguồn model cục bộ với app.js để đảm bảo cùng phiên bản weight,
+    // tránh lệch giữa lúc tạo descriptor và lúc nhận diện thực tế.
+    const MODEL_URL = './models';
 
     const logBox = document.getElementById('log-box');
     function log(msg, color = 'text-slate-300') {
         logBox.innerHTML += `<div class="${color}">> ${msg}</div>`;
         logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    // Thử tải 1 ảnh, trả về null nếu không tồn tại/lỗi (dùng để dò xem ảnh có tồn tại không)
+    async function tryFetchImage(path) {
+        try {
+            return await faceapi.fetchImage(path);
+        } catch (e) {
+            return null;
+        }
     }
 
     async function generate() {
@@ -44,7 +57,6 @@
         btn.classList.add('opacity-50', 'cursor-not-allowed');
 
         log("Đang nạp AI Models nhận diện...", "text-amber-400");
-        const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
 
         try {
             await Promise.all([
@@ -54,7 +66,7 @@
             ]);
             log("Đã nạp AI Models thành công!", "text-green-400");
         } catch (err) {
-            log("Lỗi tải AI Models. Vui lòng kiểm tra mạng!", "text-red-400");
+            log("Lỗi tải AI Models. Vui lòng kiểm tra lại thư mục /models!", "text-red-400");
             btn.disabled = false;
             btn.classList.remove('opacity-50', 'cursor-not-allowed');
             return;
@@ -62,15 +74,25 @@
 
         const fullDescriptors = [];
 
-        for (const person of PEOPLE) {
-            log(`Đang quét đối tượng: [${person.label}]...`, "text-cyan-400");
+        for (const label of PEOPLE) {
+            log(`Đang quét đối tượng: [${label}]...`, "text-cyan-400");
             const personDescriptors = [];
+            let missingStreak = 0;
 
-            for (let i = 1; i <= person.count; i++) {
-                // Đã sửa đường dẫn thành ./labeled_images/
-                const imgPath = `./labeled_images/${person.label}/${i}.jpg`;
+            for (let i = 1; i <= MAX_IMAGES_PER_PERSON; i++) {
+                const imgPath = `./labeled_images/${label}/${i}.jpg`;
+                const img = await tryFetchImage(imgPath);
+
+                if (!img) {
+                    missingStreak++;
+                    // Dừng dò cho người này nếu gặp liên tiếp 2 chỉ số ảnh không tồn tại
+                    // (tránh dừng oan nếu chẳng may thiếu 1 file giữa chừng, ví dụ mất 2.jpg nhưng vẫn còn 3.jpg)
+                    if (missingStreak >= 2) break;
+                    continue;
+                }
+                missingStreak = 0;
+
                 try {
-                    const img = await faceapi.fetchImage(imgPath);
                     const detection = await faceapi
                         .detectSingleFace(img)
                         .withFaceLandmarks()
@@ -78,22 +100,23 @@
 
                     if (detection) {
                         personDescriptors.push(Array.from(detection.descriptor));
-                        log(`  ✔ Nhận diện tốt: ${person.label}/${i}.jpg`, "text-green-400");
+                        log(`  ✔ Nhận diện tốt: ${label}/${i}.jpg`, "text-green-400");
                     } else {
-                        log(`  ✖ Không tìm thấy mặt trong: ${person.label}/${i}.jpg`, "text-yellow-400");
+                        log(`  ✖ Không tìm thấy khuôn mặt trong: ${label}/${i}.jpg`, "text-yellow-400");
                     }
                 } catch (e) {
-                    log(`  ✖ Không tìm thấy file ảnh: ${imgPath}`, "text-red-400");
+                    log(`  ✖ Lỗi xử lý ảnh: ${imgPath}`, "text-red-400");
                 }
             }
 
             if (personDescriptors.length > 0) {
+                log(`  → Tổng cộng ${personDescriptors.length} ảnh hợp lệ cho [${label}]`, "text-cyan-300");
                 fullDescriptors.push({
-                    label: person.label,
+                    label: label,
                     descriptors: personDescriptors
                 });
             } else {
-                log(`  ⚠ Cảnh báo: Không có vector nào cho [${person.label}]`, "text-red-400");
+                log(`  ⚠ Cảnh báo: Không có vector nào cho [${label}]`, "text-red-400");
             }
         }
 
