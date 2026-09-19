@@ -6,6 +6,9 @@ const cardContainer = document.getElementById('card-container');
 const cardInner = document.getElementById('card-inner');
 const cardFront = document.getElementById('card-front');
 
+// API Key vừa tạo từ Google AI Studio
+const GEMINI_API_KEY = "AQ.Ab8RN6Ivh8XiyGILgh92c4uDq2ojnidNzMILgvFG78Km3oZigA";
+
 let userData = [];
 let scanInterval = null;
 let matchCount = 0;
@@ -38,17 +41,48 @@ async function loadDescriptorsFromJson() {
     return data.map((item) => faceapi.LabeledFaceDescriptors.fromJSON(item));
 }
 
-// 4. Hiển thị thẻ bài với hiệu ứng lật 3D
+// 4. Gọi Gemini API gieo quẻ vận mệnh
+async function getDailyOracle(fullName, birthYear) {
+    const oracleEl = document.getElementById('card-oracle');
+    oracleEl.innerText = "Đang gieo quẻ thiên cơ...";
+
+    const prompt = `Bạn là một pháp sư bói toán thần bí. Hãy phán đúng 1 câu cực ngắn (dưới 20 từ) về vận mệnh ngày hôm nay cho người tên "${fullName}", sinh năm ${birthYear}. Giọng điệu hài hước, phong cách kiếm hiệp ma thuật. Không tiêu đề, chỉ trả về đúng câu phán.`;
+
+    try {
+        const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            }
+        );
+
+        const data = await res.json();
+        const oracleText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        oracleEl.innerText = oracleText ? `"${oracleText}"` : '"Hôm nay linh khí bình ổn, làm việc gì cũng hanh thông."';
+    } catch (err) {
+        console.error("Lỗi Gemini:", err);
+        oracleEl.innerText = '"Hôm nay xuất hành gặp bạn hiền, nên tránh xa deadline."';
+    }
+}
+
+// 5. Hiển thị thẻ bài với hiệu ứng lật 3D
 function showCard(person) {
     clearInterval(scanInterval);
 
-    // Điền dữ liệu
+    // Điền dữ liệu tĩnh
     document.getElementById('card-name').innerText = person.fullName;
     document.getElementById('card-gender').innerText = person.gender;
     document.getElementById('card-year').innerText = `Căn cơ: ${person.birthYear}`;
     document.getElementById('card-desc').innerText = `"${person.description}"`;
 
-    // Thiết lập class mặt ngửa an toàn
+    // Gọi Gemini gieo quẻ động
+    getDailyOracle(person.fullName, person.birthYear);
+
+    // Thiết lập class giao diện theo giới tính
     const baseClasses = 'absolute inset-0 backface-hidden rotate-y-180 rounded-2xl p-6 border-2 shadow-2xl flex flex-col justify-between';
     if (person.gender && person.gender.toLowerCase() === 'nam') {
         cardFront.className = `${baseClasses} border-amber-500 bg-gradient-to-b from-slate-900 via-slate-900 to-amber-950 shadow-[0_0_35px_rgba(245,158,11,0.25)]`;
@@ -58,18 +92,18 @@ function showCard(person) {
         document.getElementById('card-gender').className = 'px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-pink-500/20 text-pink-400 border border-pink-500/40';
     }
 
-    // Ẩn camera, hiện khung chứa thẻ
+    // Chuyển cảnh sang thẻ
     cameraContainer.classList.add('hidden');
     cardContainer.classList.remove('hidden');
     statusText.innerText = '✦ Nhận diện chân dung thành công! ✦';
 
-    // Lật mặt bài mượt mà sau 200ms
+    // Lật từ mặt úp sang mặt ngửa
     setTimeout(() => {
         cardInner.classList.add('rotate-y-180');
     }, 200);
 }
 
-// 5. Khởi động toàn bộ
+// 6. Khởi động toàn bộ
 async function init() {
     statusText.innerText = 'Đang kích hoạt ma trận...';
     const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
@@ -127,7 +161,7 @@ async function init() {
     }
 }
 
-// 6. Xuất thẻ ảnh PNG
+// 7. Xuất ảnh thẻ
 document.getElementById('btn-download').addEventListener('click', () => {
     const btnDownload = document.getElementById('btn-download');
     const btnRescan = document.getElementById('btn-rescan');
@@ -155,7 +189,7 @@ document.getElementById('btn-download').addEventListener('click', () => {
         });
 });
 
-// 7. Nút quét lại
+// 8. Quét lại
 document.getElementById('btn-rescan').addEventListener('click', () => {
     location.reload();
 });
