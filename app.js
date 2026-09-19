@@ -42,6 +42,8 @@ async function loadDescriptorsFromJson() {
 }
 
 // 4. Gọi Gemini API gieo quẻ vận mệnh qua Bearer Token
+const GEMINI_API_KEY = "AQ.Ab8RN6JzfJY3griHcdheCa8_zq2Jd2jTP3G2oe9xXH8D4uC1rA";
+
 async function getDailyOracle(fullName, birthYear) {
     const oracleEl = document.getElementById('card-oracle');
     oracleEl.innerText = "Đang gieo quẻ thiên cơ...";
@@ -49,25 +51,28 @@ async function getDailyOracle(fullName, birthYear) {
     const prompt = `Bạn là một pháp sư bói toán thần bí. Hãy phán đúng 1 câu cực ngắn (dưới 20 từ) về vận mệnh ngày hôm nay cho người tên "${fullName}", sinh năm ${birthYear}. Giọng điệu hài hước, phong cách kiếm hiệp ma thuật. Không tiêu đề, chỉ trả về đúng câu phán.`;
 
     try {
-        const res = await fetch(
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${GEMINI_API_KEY}`
-                },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
-            }
-        );
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+        const res = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
 
         const data = await res.json();
+
+        if (data.error) {
+            console.error("Chi tiết lỗi từ API:", data.error);
+        }
+
         const oracleText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         oracleEl.innerText = oracleText ? `"${oracleText}"` : '"Hôm nay linh khí bình ổn, làm việc gì cũng hanh thông."';
     } catch (err) {
-        console.error("Lỗi Gemini:", err);
+        console.error("Lỗi kết nối Gemini:", err);
         oracleEl.innerText = '"Hôm nay xuất hành gặp bạn hiền, nên tránh xa deadline."';
     }
 }
