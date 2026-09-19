@@ -7,7 +7,7 @@ const cardInner = document.getElementById('card-inner');
 const cardFront = document.getElementById('card-front');
 
 // Key xác thực mới từ Google AI Studio
-const GEMINI_API_KEY = "AQ.Ab8RN6IJ3boA5cSJu-pljb9E08Ej0VCGsHk0DHCaL916OXcC7w";
+const GEMINI_API_KEY = "AQ.Ab8RN6JzfJY3griHcdheCa8_zq2Jd2jTP3G2oe9xXH8D4uC1rA";
 
 let userData = [];
 let scanInterval = null;
