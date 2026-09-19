@@ -87,12 +87,12 @@ function captureAvatar(box) {
     cardAvatar.src = cropCanvas.toDataURL('image/jpeg', 0.9);
 }
 
-// 5. Gieo quẻ qua Gemini API
-async function getDailyOracle(fullName, birthYear) {
+// Nâng cấp: Truyền ngày sinh đầy đủ và mô tả tính cách vào prompt
+async function getDailyOracle(fullName, birthDate, description) {
     const oracleEl = document.getElementById('card-oracle');
     oracleEl.innerText = "Đang gieo quẻ thiên cơ...";
 
-    const prompt = `Bạn là một pháp sư bói toán thần bí. Hãy phán đúng 1 câu cực ngắn (dưới 20 từ) về vận mệnh ngày hôm nay cho người tên "${fullName}", sinh năm ${birthYear}. Giọng điệu hài hước, phong cách kiếm hiệp ma thuật. Không tiêu đề, chỉ trả về đúng câu phán.`;
+    const prompt = `Bạn là pháp sư bói toán thần bí hài hước. Hãy phán đúng 1 câu cực ngắn (dưới 22 từ) về vận mệnh hôm nay cho người tên "${fullName}", sinh ngày ${birthDate} (hãy ngầm liên hệ một chút chiêm tinh/căn mệnh), tính cách: "${description}". Giọng điệu kiếm hiệp pha hài hước. Không tiêu đề, không giải thích, chỉ trả về đúng câu phán trong ngoặc kép.`;
 
     try {
         const res = await fetch('/api/gemini', {
@@ -102,7 +102,7 @@ async function getDailyOracle(fullName, birthYear) {
         });
         const data = await res.json();
         const oracleText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        oracleEl.innerText = oracleText ? `"${oracleText}"` : '"Hôm nay linh khí bình ổn, làm việc gì cũng hanh thông."';
+        oracleEl.innerText = oracleText ? oracleText : '"Hôm nay linh khí bình ổn, làm việc gì cũng hanh thông."';
     } catch (err) {
         console.error("Lỗi Gemini:", err);
         oracleEl.innerText = '"Hôm nay xuất hành gặp bạn hiền, nên tránh xa deadline."';
@@ -149,22 +149,28 @@ function applyGenderTheme(gender) {
     }
 }
 
-// 7. Hiển thị thẻ kết quả
 function showCard(person, faceBox) {
     if (isProcessingCard) return;
     isProcessingCard = true;
     clearInterval(scanInterval);
 
     captureAvatar(faceBox);
-    stopVideo(); // Tắt hoàn toàn camera sau khi đã chụp
+    stopVideo();
 
     const displayName = person.fullName || person.name || 'Vô Danh Pháp Sư';
+    const birthDate = person.birthDate || 'Bí ẩn';
+    const description = person.description || 'Hành tung bí ẩn, chưa rõ lai lịch.';
+
     document.getElementById('card-name').innerText = displayName;
-    document.getElementById('card-year').innerText = `Căn cơ: ${person.birthYear || 'Vô hạn'}`;
-    document.getElementById('card-desc').innerText = `"${person.description || 'Hành tung bí ẩn, chưa rõ lai lịch.'}"`;
+
+    // Hiển thị ngày sinh đầy đủ lên thẻ
+    document.getElementById('card-year').innerText = `Căn cơ: ${birthDate}`;
+    document.getElementById('card-desc').innerText = `"${description}"`;
 
     applyGenderTheme(person.gender);
-    getDailyOracle(displayName, person.birthYear);
+
+    // Gọi hàm bói toán với đủ thông tin
+    getDailyOracle(displayName, birthDate, description);
 
     cameraContainer.classList.add('hidden');
     cardContainer.classList.remove('hidden');

@@ -3,21 +3,21 @@
     "id": "ban_than",
     "fullName": "Trần Hữu Phước",
     "gender": "Nam",
-    "birthYear": 2007,
+    "birthDate": "05/08/2007",
     "description": "Tôn trọng, cổ điển."
   },
   {
     "id": "tu_mup",
     "fullName": "Từ Văn Phước",
     "gender": "Nam",
-    "birthYear": 2007,
+    "birthDate": "30/06/2007",
     "description": "Bựa chuối."
   },
   {
     "id": "mai_chi",
     "fullName": "Dương Mai Chi",
     "gender": "Nữ",
-    "birthYear": 2007,
+    "birthDate": "03/11/2007",
     "description": "Con người đa nhân cách."
   }
 ]
