@@ -8,8 +8,6 @@ const cardFront = document.getElementById('card-front');
 
 let userData = [];
 let scanInterval = null;
-
-// Biến kiểm soát đa khung hình để chống rung / nhận diện nhầm
 let matchCount = 0;
 let lastDetectedLabel = '';
 const REQUIRED_MATCH_FRAMES = 5;
@@ -50,28 +48,25 @@ function showCard(person) {
     document.getElementById('card-year').innerText = `Căn cơ: ${person.birthYear}`;
     document.getElementById('card-desc').innerText = `"${person.description}"`;
 
-    // Thay đổi màu thẻ theo giới tính
+    // Thiết lập class mặt ngửa an toàn
+    const baseClasses = 'absolute inset-0 backface-hidden rotate-y-180 rounded-2xl p-6 border-2 shadow-2xl flex flex-col justify-between';
     if (person.gender && person.gender.toLowerCase() === 'nam') {
-        cardFront.className =
-            'absolute inset-0 backface-hidden rotate-y-180 rounded-2xl p-6 border-2 border-amber-500 bg-gradient-to-b from-slate-900 via-slate-900 to-amber-950 shadow-[0_0_35px_rgba(245,158,11,0.25)] flex flex-col justify-between';
-        document.getElementById('card-gender').className =
-            'px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/40';
+        cardFront.className = `${baseClasses} border-amber-500 bg-gradient-to-b from-slate-900 via-slate-900 to-amber-950 shadow-[0_0_35px_rgba(245,158,11,0.25)]`;
+        document.getElementById('card-gender').className = 'px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/40';
     } else {
-        cardFront.className =
-            'absolute inset-0 backface-hidden rotate-y-180 rounded-2xl p-6 border-2 border-pink-500 bg-gradient-to-b from-slate-900 via-slate-900 to-pink-950 shadow-[0_0_35px_rgba(236,72,153,0.25)] flex flex-col justify-between';
-        document.getElementById('card-gender').className =
-            'px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-pink-500/20 text-pink-400 border border-pink-500/40';
+        cardFront.className = `${baseClasses} border-pink-500 bg-gradient-to-b from-slate-900 via-slate-900 to-pink-950 shadow-[0_0_35px_rgba(236,72,153,0.25)]`;
+        document.getElementById('card-gender').className = 'px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-pink-500/20 text-pink-400 border border-pink-500/40';
     }
 
-    // Chuyển màn hình & thực hiện animation lật bài
+    // Ẩn camera, hiện khung chứa thẻ
     cameraContainer.classList.add('hidden');
     cardContainer.classList.remove('hidden');
     statusText.innerText = '✦ Nhận diện chân dung thành công! ✦';
 
-    // Lật từ mặt úp sang mặt ngửa sau 150ms
+    // Lật mặt bài mượt mà sau 200ms
     setTimeout(() => {
         cardInner.classList.add('rotate-y-180');
-    }, 150);
+    }, 200);
 }
 
 // 5. Khởi động toàn bộ
@@ -114,7 +109,6 @@ async function init() {
                             matchCount = 1;
                         }
 
-                        // Nhận diện liên tiếp đủ số frame quy định mới bung thẻ
                         if (matchCount >= REQUIRED_MATCH_FRAMES) {
                             const person = userData.find((u) => u.id === bestMatch.label);
                             if (person) showCard(person);
